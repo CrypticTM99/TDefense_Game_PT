@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Medieval Fantasy TD — HTML5 Demo</title>
+<style>
+  :root {
+    --bg:#112;
+    --panel:#1b2b2b;
+    --accent:#f2c94c;
+    --muted:#cbd5df;
+  }
+  body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:linear-gradient(#0b1220,#101826); color:var(--muted); display:flex; height:100vh;}
+  #gameWrap{ margin:auto; width:1100px; max-width:calc(100vw - 20px); display:grid; grid-template-columns: 820px 280px; gap:12px; }
+  canvas{ background:linear-gradient(#8ab6e0,#2a9d8f); width:100%; height:620px; display:block; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,.6);}
+  .panel { background:rgba(20,30,34,0.9); padding:12px; border-radius:8px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
+  .hud{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .hud div{ background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:6px; }
+  .title{ font-weight:700; color:var(--accent); margin-bottom:8px;}
+  button, .btn { background:var(--accent); color:#091016; border:none; padding:8px 10px; border-radius:6px; cursor:pointer; font-weight:600;}
+  .small{ font-size:13px; padding:6px 8px; }
+  .muted{ color: #9fb0b8; font-size:13px; }
+  .list { display:flex; flex-direction:column; gap:8px; }
+  .towerBtn { display:flex; gap:8px; align-items:center; padding:6px; background:rgba(255,255,255,0.02); border-radius:6px; cursor:pointer; }
+  .towerBtn:hover{ background:rgba(255,255,255,0.03);}
+  .stats{ font-size:13px; color:#cfe8e2; }
+  .smallRow{ display:flex; justify-content:space-between; align-items:center; gap:6px;}
+  .footer { margin-top:10px; font-size:12px; color:#9fb0b8;}
+  .slot{ padding:6px; background:rgba(255,255,255,0.02); border-radius:6px; display:flex; justify-content:space-between; align-items:center;}
+  input[type=range]{ width:100%;}
+</style>
+</head>
+<body>
+<div id="gameWrap">
+  <div class="panel">
+    <canvas id="game" width="1640" height="1160"></canvas>
+  </div>
+
+  <div class="panel" style="height:620px; overflow:auto;">
+    <div class="title">Town of Bramblewick</div>
+    <div class="hud">
+      <div>Gold: <span id="gold">200</span></div>
+      <div>Wave: <span id="wave">0</span></div>
+      <div>Villagers: <span id="villagers">5</span></div>
+    </div>
+
+    <div class="muted">Build Towers</div>
+    <div class="list">
+      <div class="towerBtn" data-type="archer">
+        <div style="width:36px;height:36px;border-radius:6px;background:#e6c07b;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2b1a00">A</div>
+        <div>
+          <div style="font-weight:700">Archer Tower</div>
+          <div class="muted">Fast, single target</div>
+        </div>
+        <div style="margin-left:auto" class="muted">Cost: <span>75</span></div>
+      </div>
+
+      <div class="towerBtn" data-type="mage">
+        <div style="width:36px;height:36px;border-radius:6px;background:#8f6ad1;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">M</div>
+        <div>
+          <div style="font-weight:700">Mage Tower</div>
+          <div class="muted">AoE magic</div>
+        </div>
+        <div style="margin-left:auto" class="muted">Cost: <span>110</span></div>
+      </div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+
+    <div class="muted">Selected</div>
+    <div id="selectedPanel" class="slot">
+      <div>No tower selected</div>
+      <div>
+        <button class="small" id="upgradeBtn" disabled>Upgrade</button>
+        <button class="small" id="sellBtn" disabled>Sell</button>
+      </div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+
+    <div class="muted">Jobs</div>
+    <div class="smallRow" style="margin-top:6px">
+      <div>Gold Mine</div>
+      <div>
+        <button class="small" id="assignMine">Assign</button>
+        <button class="small" id="unassignMine">Unassign</button>
+      </div>
+    </div>
+    <div class="smallRow" style="margin-top:6px">
+      <div>Repair</div>
+      <div>
+        <button class="small" id="assignRepair">Assign</button>
+        <button class="small" id="unassignRepair">Unassign</button>
+      </div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+
+    <div class="muted">Crafting</div>
+    <div style="margin-top:8px;" class="slot">
+      <div>
+        <div style="font-weight:700">Damage Potion</div>
+        <div class="muted">Cost: 5 Iron</div>
+      </div>
+      <div>
+        <button class="small" id="craftPotion">Craft</button>
+      </div>
+    </div>
+    <div style="margin-top:8px" class="slot">
+      <div>Iron: <span id="iron">0</span></div>
+      <div>Potions: <span id="potions">0</span></div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+
+    <div class="muted">Wave Controls</div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button id="startWave" class="btn small">Start Next Wave</button>
+      <button id="fastForward" class="small">x1 Speed</button>
+    </div>
+
+    <div class="footer">Demo: canvas-only art. Extend towers / enemies in code. Day/night affects enemy strength.</div>
+  </div>
+</div>
+
+<script>
+/* -------------------------
+   Tiny TD: HTML5 Canvas
+   Single-file demo (extendable)
+   ------------------------- */
+
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = canvas.width, H = canvas.height;
+function resizeCanvas(){ /* keep internal resolution large for crispness */
+  const ratio = 1; canvas.style.width = (820*ratio) + 'px'; canvas.style.height = (620*ratio) + 'px';
+}
+resizeCanvas();
+
+/* -------------------------
+   Game state & constants
+   ------------------------- */
+
+const GRID = { cols: 14, rows: 10, tile: 82 }; // grid for building
+const spawnPoint = { x: -60, y: GRID.tile*4 + 20 };
+const goalPoint = { x: GRID.tile*GRID.cols + 60, y: GRID.tile*5 + 10 };
+
+let game = {
+  gold: 200,
+  villagers: 5,
+  assigned: { mine:0, repair:0 },
+  iron: 0,
+  potions: 0,
+  waveIndex: 0,
+  inWave: false,
+  timeScale: 1,
+  isNight: false,
+  dayTime: 0, // 0..1
+  dayLength: 40, // seconds for full cycle
+  towers: [],
+  enemies: [],
+  projectiles: [],
+  pools: { enemies:[], projs:[] },
+  selectedTower: null,
+  waveQueue: [],
+  enemyPrefabs: null,
+  runningSpawner: null
+};
+
+/* -------------------------
+   Utilities
+   ------------------------- */
+function rand(min,max){ return Math.random()*(max-min)+min; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+function dist(a,b){let dx=a.x-b.x,dy=a.y-b.y;return Math.hypot(dx,dy);}
+
+/* -------------------------
+   Simple map & path (hardcoded waypoints)
+   ------------------------- */
+const waypoints = [];
+for(let i=0;i<7;i++){
+  waypoints.push({ x: GRID.tile*(i*2+1) - 50, y: GRID.tile*4 + 30 });
+}
+waypoints.push({ x: goalPoint.x - 40, y: goalPoint.y });
+
+/* -------------------------
+   Enemy definitions
+   ------------------------- */
+const ENEMY_TYPES = {
+  goblin: { name:'Goblin', hp:35, speed: 60, gold:6, iron:1, color:'#E26A2C', size:14},
+  orc:    { name:'Orc', hp:90, speed: 35, gold:20, iron:3, color:'#7F5539', size:18}
+};
+
+/* -------------------------
+   Tower definitions
+   ------------------------- */
+const TOWER_TYPES = {
+  archer: { name:'Archer', cost:75, range:170, damage:15, fireRate:1.4, color:'#e6c07b' },
+  mage:   { name:'Mage',   cost:110, range:140, damage:8, fireRate:0.8, aoe:48, color:'#8f6ad1' }
+};
+
+/* -------------------------
+   Pooling helpers
+   ------------------------- */
+function spawnEnemy(type, x, y){
+  let e = game.pools.enemies.pop();
+  if (!e) e = { alive:false };
+  e.type = type;
+  e.x = x; e.y = y;
+  e.wayIndex = 0;
+  e.maxHP = type.hp * (1 + game.waveIndex * 0.12);
+  e.hp = e.maxHP;
+  e.speed = type.speed * (game.isNight? 1.15 : 1);
+  e.gold = Math.ceil(type.gold * (1 + game.waveIndex*0.03));
+  e.iron = type.iron;
+  e.color = type.color;
+  e.size = type.size;
+  e.alive = true;
+  game.enemies.push(e);
+  return e;
+}
+function despawnEnemy(e){
+  e.alive = false;
+  game.pools.enemies.push(e);
+  const idx = game.enemies.indexOf(e); if (idx!==-1) game.enemies.splice(idx,1);
+}
+
+/* -------------------------
+   Projectile
+   ------------------------- */
+function spawnProj(x,y,target,damage,color,aoe=false){
+  let p = game.pools.projs.pop() || { alive:false };
+  p.x = x; p.y = y; p.target = target; p.damage = damage; p.speed = 400; p.color=color; p.alive=true; p.aoe = aoe;
+  game.projectiles.push(p); return p;
+}
+function despawnProj(p){ p.alive=false; game.pools.projs.push(p); const idx=game.projectiles.indexOf(p); if(idx!==-1) game.projectiles.splice(idx,1); }
+
+/* -------------------------
+   Towers: place, update, draw
+   ------------------------- */
+function createTower(typeKey, gx, gy){
+  const tdata = TOWER_TYPES[typeKey];
+  if (game.gold < tdata.cost) { alert('Not enough gold'); return null; }
+  game.gold -= tdata.cost;
+  const t = {
+    kind: typeKey, x: gx, y: gy, px: gx*GRID.tile+GRID.tile/2, py: gy*GRID.tile+GRID.tile/2,
+    level:1, damage: tdata.damage, range: tdata.range, fireRate: tdata.fireRate, cooldown:0, color:tdata.color
+  };
+  game.towers.push(t);
+  return t;
+}
+function upgradeTower(t){
+  const cost = Math.floor(50 * (1 + t.level*0.6));
+  if (game.gold < cost) { alert('Not enough gold'); return; }
+  game.gold -= cost; t.level++; t.damage *= 1.3; t.range += 12; t.fireRate *= 1.05;
+}
+function sellTower(t){
+  const refund = Math.floor((TOWER_TYPES[t.kind].cost * 0.6) * (1 + (t.level-1)*0.15));
+  game.gold += refund;
+  const idx = game.towers.indexOf(t); if (idx!==-1) game.towers.splice(idx,1);
+  if (game.selectedTower === t) game.selectedTower = null;
+}
+
+/* -------------------------
+   Wave spawner
+   ------------------------- */
+function spawnWave(){
+  if (game.inWave) return;
+  game.waveIndex++;
+  document.getElementById('wave').textContent = game.waveIndex;
+  game.inWave = true;
+  const pattern = [];
+  // simple progression: wave decides mix
+  const base = game.waveIndex;
+  if (base < 3) {
+    pattern.push({type:ENEMY_TYPES.goblin, count: 6 + base*2});
+  } else if (base < 6) {
+    pattern.push({type:ENEMY_TYPES.goblin, count: 8 + base});
+    pattern.push({type:ENEMY_TYPES.orc, count: Math.max(1, Math.floor(base/2))});
+  } else {
+    pattern.push({type:ENEMY_TYPES.goblin, count: 6 + base});
+    pattern.push({type:ENEMY_TYPES.orc, count: 2 + Math.floor(base/2)});
+  }
+
+  // wave coroutine
+  let i=0, j=0, spawnDelay = 0.7;
+  game.runningSpawner = setInterval(()=>{
+    if (i>=pattern.length){ 
+      // check all enemies dead to finish wave
+      if (game.enemies.length === 0){
+        clearInterval(game.runningSpawner); game.runningSpawner = null; game.inWave=false;
+      }
+      return;
+    }
+    const group = pattern[i];
+    if (j < group.count){
+      spawnEnemy(group.type, spawnPoint.x, spawnPoint.y + rand(-10,10));
+      j++;
+    } else {
+      i++; j=0;
+    }
+  }, spawnDelay * 1000 / game.timeScale);
+}
+
+/* -------------------------
+   Villager jobs processing
+   ------------------------- */
+setInterval(()=>{
+  // each tick (5s) generate gold for miners
+  const miners = game.assigned.mine;
+  if (miners>0){
+    const gained = miners * (3 + Math.floor(game.waveIndex*0.2));
+    game.gold += gained;
+  }
+  // repair: heal nearby tower a bit
+  const repairers = game.assigned.repair;
+  if (repairers>0 && game.towers.length>0){
+    for(let k=0;k<repairers;k++){
+      const t = game.towers[Math.floor(Math.random()*game.towers.length)];
+      // "repair" implemented as small damage buff for next 10s
+      t._repairBuff = 5 + 2*repairers;
+      t._repairExpire = Date.now() + 8000;
+    }
+  }
+
+  // update UI
+  updateUI();
+}, 5000);
+
+/* -------------------------
+   Game update loop
+   ------------------------- */
+let last = performance.now();
+function update(now){
+  const dt = (now - last) / 1000 * game.timeScale; last = now;
+  // day/night
+  game.dayTime += dt / game.dayLength;
+  if (game.dayTime >= 1) game.dayTime -= 1;
+  game.isNight = (game.dayTime > 0.7 || game.dayTime < 0.2);
+  // enemies
+  for (let e of game.enemies.slice()){
+    // waypoint movement
+    const wp = waypoints[Math.min(e.wayIndex, waypoints.length-1)];
+    const dx = wp.x - e.x, dy = wp.y - e.y;
+    const distTo = Math.hypot(dx,dy);
+    if (distTo < 6){
+      e.wayIndex++;
+      if (e.wayIndex >= waypoints.length){
+        // reached town
+        game.gold = Math.max(0, game.gold - Math.floor((e.maxHP/20)));
+        despawnEnemy(e); continue;
+      }
+    } else {
+      const sp = e.speed * dt;
+      e.x += dx / distTo * sp;
+      e.y += dy / distTo * sp;
+    }
+  }
+
+  // towers target & shoot
+  for (let t of game.towers){
+    // expire repair buff
+    if(t._repairExpire && Date.now() > t._repairExpire){ t._repairBuff = 0; t._repairExpire = 0; }
+    t.cooldown -= dt;
+    if (t.cooldown <= 0){
+      // find target
+      let target = null; let bestD = 99999;
+      for (let e of game.enemies){
+        const d = Math.hypot(e.x - t.px, e.y - t.py);
+        if (d <= t.range && d < bestD){
+          bestD = d; target = e;
+        }
+      }
+      if (target){
+        // shoot
+        const buff = (t._repairBuff || 0);
+        const potionBonus = game.potions > 0 ? 1.25 : 1;
+        const dmg = t.damage * (1 + buff/100) * potionBonus;
+        if (t.kind === 'archer'){
+          spawnProj(t.px, t.py, target, dmg, '#fff', false);
+        } else if (t.kind === 'mage'){
+          // mage fires aoe projectile which applies to enemies near impact
+          spawnProj(t.px, t.py, target, dmg, '#a5a', true);
+        }
+        t.cooldown = 1 / t.fireRate;
+      }
+    }
+  }
+
+  // projectiles move
+  for (let p of game.projectiles.slice()){
+    if (!p.target || !p.target.alive){ despawnProj(p); continue; }
+    const dx = p.target.x - p.x, dy = p.target.y - p.y; const d = Math.hypot(dx,dy);
+    const step = p.speed * dt;
+    if (d <= step+2){
+      // hit
+      if (p.aoe){
+        // damage all enemies within radius 40
+        for (let e of game.enemies.slice()){
+          if (Math.hypot(e.x - p.x, e.y - p.y) <= 44){
+            e.hp -= p.damage;
+            if (e.hp <= 0) killEnemy(e);
+          }
+        }
+      } else {
+        p.target.hp -= p.damage;
+        if (p.target.hp <= 0) killEnemy(p.target);
+      }
+      despawnProj(p);
+    } else {
+      p.x += dx / d * step;
+      p.y += dy / d * step;
+    }
+  }
+
+  // simple natural regen for towers? none — but repair job gives temporary buff
+  // end wave detection
+  if (!game.inWave && game.runningSpawner === null && game.waveIndex>0 && game.enemies.length === 0){
+    // wave complete; small bonus
+    // no-op for now
+  }
+
+  // update UI and render
+  updateUI();
+  render();
+  requestAnimationFrame(update);
+}
+requestAnimationFrame(update);
+
+/* -------------------------
+   Kill enemy
+   ------------------------- */
+function killEnemy(e){
+  game.gold += e.gold;
+  // drop iron resource chance
+  if (Math.random() < 0.35 + game.waveIndex*0.01){
+    game.iron += e.iron;
+  }
+  // chance potion drop (rare)
+  if (Math.random() < 0.03) { game.potions++; }
+  despawnEnemy(e);
+}
+
+/* -------------------------
+   Render
+   ------------------------- */
+function drawRoundedRect(x,y,w,h,r,fill){
+  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  if (fill){ ctx.fillStyle=fill; ctx.fill(); } else ctx.stroke();
+}
+
+function render(){
+  // clear
+  ctx.clearRect(0,0,W,H);
+
+  // draw ground tiles
+  for (let row=0; row<GRID.rows; row++){
+    for (let col=0; col<GRID.cols; col++){
+      const gx = col*GRID.tile, gy = row*GRID.tile;
+      ctx.fillStyle = (row%2===0 ^ col%2===0) ? '#486d5e' : '#3f6a5b';
+      ctx.fillRect(gx, gy, GRID.tile-2, GRID.tile-2);
+      // grid faint lines
+      ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.strokeRect(gx,gy,GRID.tile-2,GRID.tile-2);
+    }
+  }
+
+  // draw path overlay (simple horizontal path)
+  ctx.fillStyle = 'rgba(60,40,20,0.6)';
+  const py = GRID.tile*4 + 6;
+  ctx.fillRect(0, py, W, GRID.tile*2 - 12);
+  // draw waypoints path
+  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(spawnPoint.x+60, spawnPoint.y);
+  for (let wp of waypoints){ ctx.lineTo(wp.x, wp.y); }
+  ctx.stroke();
+
+  // draw towers
+  for (let t of game.towers){
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.ellipse(t.px+6,t.py+12,26,12,0,0,Math.PI*2); ctx.fill();
+    // body
+    ctx.fillStyle = t.color; drawRoundedRect(t.px-22,t.py-36,44,44,8,t.color);
+    // level mark
+    ctx.fillStyle = '#fff'; ctx.font='12px bold sans-serif'; ctx.fillText('Lv'+t.level, t.px-16, t.py-14);
+    // range preview (selected)
+    if (game.selectedTower === t){
+      ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.beginPath(); ctx.arc(t.px,t.py,t.range,0,Math.PI*2); ctx.stroke();
+    }
+  }
+
+  // draw enemies
+  for (let e of game.enemies){
+    // shadow
+    ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(e.x+6,e.y+10,e.size+8,e.size/2+6,0,0,Math.PI*2); ctx.fill();
+    // body
+    ctx.fillStyle = e.color; ctx.beginPath(); ctx.arc(e.x,e.y,e.size,0,Math.PI*2); ctx.fill();
+    // HP bar
+    const hpw = 28, hpx = e.x - hpw/2, hpy = e.y - e.size - 12;
+    ctx.fillStyle = '#333'; ctx.fillRect(hpx, hpy, hpw, 6);
+    ctx.fillStyle = '#e2564b'; ctx.fillRect(hpx, hpy, hpw * (e.hp/e.maxHP), 6);
+  }
+
+  // draw projectiles
+  for (let p of game.projectiles){
+    ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.fill();
+    if (p.aoe){
+      ctx.strokeStyle = 'rgba(165,90,200,0.18)'; ctx.beginPath(); ctx.arc(p.x,p.y,44,0,Math.PI*2); ctx.stroke();
+    }
+  }
+
+  // HUD day/night overlay
+  const nightAlpha = clamp((game.dayTime > 0.7 ? (game.dayTime - 0.7)/0.3 : (game.dayTime < 0.2 ? (0.2 - game.dayTime)/0.2 : 0)), 0, 0.6);
+  ctx.fillStyle = `rgba(6,10,28,${0.25 * nightAlpha})`;
+  ctx.fillRect(0,0,W,H);
+  // sun/moon indicator
+  const cx = 70, cy = 40;
+  ctx.fillStyle = game.isNight ? '#e8f0ff' : '#fff2c4';
+  ctx.beginPath(); ctx.arc(cx + Math.cos(game.dayTime* Math.PI*2)*30, cy + Math.sin(game.dayTime* Math.PI*2)*10, 12,0,Math.PI*2); ctx.fill();
+  // day text
+  ctx.fillStyle = '#cfe8e2'; ctx.font='14px sans-serif'; ctx.fillText(game.isNight ? 'Night' : 'Day', cx+30, cy+6);
+}
+
+/* -------------------------
+   Input handling: build & select
+   ------------------------- */
+let placing = null; // 'archer' or 'mage'
+document.querySelectorAll('.towerBtn').forEach(b=>{
+  b.addEventListener('click', ()=>{ placing = b.dataset.type; document.body.style.cursor='crosshair'; });
+});
+
+canvas.addEventListener('click', (ev)=>{
+  const rect = canvas.getBoundingClientRect();
+  const cx = (ev.clientX - rect.left) * (canvas.width / rect.width);
+  const cy = (ev.clientY - rect.top) * (canvas.height / rect.height);
+
+  if (placing){
+    // compute grid
+    const gx = Math.floor(cx / GRID.tile), gy = Math.floor(cy / GRID.tile);
+    // check if inside map
+    if (gx>=0 && gx<GRID.cols && gy>=0 && gy<GRID.rows){
+      // Prevent building on path rows (simple rule: row 4 and 5 are path)
+      if (gy===4 || gy===5) { alert('Cannot build on the road'); placing=null; document.body.style.cursor='default'; return; }
+      // Prevent building on occupied tile
+      for (let t of game.towers) if (t.x===gx && t.y===gy) { placing=null; document.body.style.cursor='default'; return; }
+      createTower(placing, gx, gy);
+    }
+    placing=null; document.body.style.cursor='default';
+    return;
+  }
+  // selection: find tower at click
+  let found = null;
+  for (let t of game.towers){
+    if (Math.hypot(cx - t.px, cy - t.py) < 36){ found = t; break; }
+  }
+  game.selectedTower = found;
+  refreshSelectedPanel();
+});
+
+/* -------------------------
+   UI buttons & updates
+   ------------------------- */
+document.getElementById('upgradeBtn').onclick = ()=>{
+  if (game.selectedTower) upgradeTower(game.selectedTower);
+  refreshSelectedPanel(); updateUI();
+};
+document.getElementById('sellBtn').onclick = ()=>{
+  if (game.selectedTower) sellTower(game.selectedTower);
+  refreshSelectedPanel(); updateUI();
+};
+document.getElementById('startWave').onclick = ()=>spawnWave();
+
+document.getElementById('assignMine').onclick = ()=>{
+  if (game.assigned.mine + game.assigned.repair < game.villagers) { game.assigned.mine++; updateUI(); } else alert('No free villagers');
+};
+document.getElementById('unassignMine').onclick = ()=>{
+  if (game.assigned.mine>0) { game.assigned.mine--; updateUI(); }
+};
+document.getElementById('assignRepair').onclick = ()=>{
+  if (game.assigned.mine + game.assigned.repair < game.villagers) { game.assigned.repair++; updateUI(); } else alert('No free villagers');
+};
+document.getElementById('unassignRepair').onclick = ()=>{
+  if (game.assigned.repair>0) { game.assigned.repair--; updateUI(); }
+};
+document.getElementById('craftPotion').onclick = ()=>{
+  if (game.iron >= 5){ game.iron -= 5; game.potions++; updateUI(); } else alert('Need 5 Iron');
+};
+document.getElementById('fastForward').onclick = (e)=>{
+  game.timeScale = game.timeScale === 1 ? 1.8 : 1;
+  e.target.textContent = game.timeScale === 1 ? 'x1 Speed' : 'x2 Speed';
+};
+
+/* -------------------------
+   UI helpers
+   ------------------------- */
+function updateUI(){
+  document.getElementById('gold').textContent = Math.floor(game.gold);
+  document.getElementById('villagers').textContent = game.villagers + ' (free:' + (game.villagers - (game.assigned.mine + game.assigned.repair)) + ')';
+  document.getElementById('iron').textContent = game.iron;
+  document.getElementById('potions').textContent = game.potions;
+}
+function refreshSelectedPanel(){
+  const sp = document.getElementById('selectedPanel');
+  const ub = document.getElementById('upgradeBtn'); const sb = document.getElementById('sellBtn');
+  if (!game.selectedTower){ sp.firstElementChild.textContent='No tower selected'; ub.disabled=true; sb.disabled=true; }
+  else {
+    sp.firstElementChild.innerHTML = `<div style="font-weight:700">${TOWER_TYPES[game.selectedTower.kind].name} (Lv${game.selectedTower.level})</div>
+      <div class="muted">Dmg: ${Math.round(game.selectedTower.damage)} Rate: ${game.selectedTower.fireRate.toFixed(2)} Range: ${Math.round(game.selectedTower.range)}</div>`;
+    ub.disabled=false; sb.disabled=false;
+  }
+}
+
+/* -------------------------
+   Init & start
+   ------------------------- */
+updateUI();
+refreshSelectedPanel();
+
+// start background update loop already via requestAnimationFrame
+
+/* -------------------------
+   Resize handling (optional)
+   ------------------------- */
+window.addEventListener('resize', ()=>{ resizeCanvas(); });
+
+</script>
+</body>
+</html>
