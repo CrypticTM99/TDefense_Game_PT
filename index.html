@@ -706,7 +706,19 @@ function loadSave(obj){
   game.analytics = obj.analytics || game.analytics;
   updateUI(); refreshSelected(); renderMapsList();
 }
-
+<div class="muted">Auto Mode</div>
+<div class="slot">
+  <div class="smallRow">
+    <label for="autoModeToggle" style="display:flex;align-items:center;gap:6px;">
+      <input type="checkbox" id="autoModeToggle" style="vertical-align:middle;">
+      Enable Auto Mode
+    </label>
+    <div>
+      Delay: <input type="number" min="3" max="60" value="10" id="autoModeDelay" style="width:48px;">s
+    </div>
+  </div>
+  <div id="autoModeStatus" class="mutedSmall"></div>
+</div>
 /* -------------------------
    UI helpers: wave preview & update
    ------------------------- */
