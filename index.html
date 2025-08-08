@@ -3,218 +3,265 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Medieval Fantasy TD — HTML5 Demo</title>
+<title>Cryptic's TD game (prototype)</title>
 <style>
-  :root {
-    --bg:#112;
-    --panel:#1b2b2b;
-    --accent:#f2c94c;
-    --muted:#cbd5df;
+  :root{
+    --bg:#071217; --panel:#0f1f24; --accent:#f2c94c; --muted:#bcd6da;
+    --ui-bg: rgba(255,255,255,0.03);
   }
-  body{ margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial; background:linear-gradient(#0b1220,#101826); color:var(--muted); display:flex; height:100vh;}
-  #gameWrap{ margin:auto; width:1100px; max-width:calc(100vw - 20px); display:grid; grid-template-columns: 820px 280px; gap:12px; }
-  canvas{ background:linear-gradient(#8ab6e0,#2a9d8f); width:100%; height:620px; display:block; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,.6);}
-  .panel { background:rgba(20,30,34,0.9); padding:12px; border-radius:8px; box-shadow:inset 0 1px 0 rgba(255,255,255,0.02); }
-  .hud{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
-  .hud div{ background:rgba(255,255,255,0.03); padding:8px 10px; border-radius:6px; }
-  .title{ font-weight:700; color:var(--accent); margin-bottom:8px;}
-  button, .btn { background:var(--accent); color:#091016; border:none; padding:8px 10px; border-radius:6px; cursor:pointer; font-weight:600;}
-  .small{ font-size:13px; padding:6px 8px; }
-  .muted{ color: #9fb0b8; font-size:13px; }
-  .list { display:flex; flex-direction:column; gap:8px; }
-  .towerBtn { display:flex; gap:8px; align-items:center; padding:6px; background:rgba(255,255,255,0.02); border-radius:6px; cursor:pointer; }
-  .towerBtn:hover{ background:rgba(255,255,255,0.03);}
-  .stats{ font-size:13px; color:#cfe8e2; }
-  .smallRow{ display:flex; justify-content:space-between; align-items:center; gap:6px;}
-  .footer { margin-top:10px; font-size:12px; color:#9fb0b8;}
-  .slot{ padding:6px; background:rgba(255,255,255,0.02); border-radius:6px; display:flex; justify-content:space-between; align-items:center;}
-  input[type=range]{ width:100%;}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(#061217,#071821);color:var(--muted);display:flex;align-items:center;justify-content:center;padding:14px;}
+  #wrap{ width:1200px; max-width:calc(100vw - 28px); display:grid; grid-template-columns: 760px 420px; gap:12px; }
+  canvas{ width:100%; height:700px; border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,.6); background: linear-gradient(#8ab6e0,#2a9d8f); display:block; }
+  .panel{ background:var(--panel); padding:12px; border-radius:10px; min-height:700px; box-shadow: inset 0 1px rgba(255,255,255,0.02); overflow:auto;}
+  .title{ color:var(--accent); font-weight:800; margin-bottom:8px; font-size:18px; }
+  .hud{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
+  .hud .item{ background:var(--ui-bg); padding:8px 10px; border-radius:8px; font-weight:700; }
+  .muted{ color:#9fb0b8; font-size:13px; }
+  .towerBtn{ display:flex; gap:8px; align-items:center; padding:8px; border-radius:8px; cursor:pointer; background:var(--ui-bg); margin-bottom:8px; }
+  .towerBtn:hover{ background:rgba(255,255,255,0.04); }
+  .small{ font-size:13px; padding:6px 8px; border-radius:6px; background:var(--accent); color:#071014; cursor:pointer; border:none; }
+  .slot{ padding:10px; background:rgba(255,255,255,0.02); border-radius:8px; margin-bottom:8px; }
+  .smallRow{ display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:6px; }
+  input[type=range]{ width:100%; }
+  .mutedSmall{ font-size:12px; color:#9fb0b8; }
+  .footer{ font-size:12px; color:#8da9ad; margin-top:8px; }
+  .mapsList{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+  .mapBtn{ padding:8px;border-radius:8px;background:rgba(255,255,255,0.02);cursor:pointer; }
+  .mapBtn.active{ background:rgba(242,201,76,0.16); border:1px solid rgba(242,201,76,0.18); }
+  @media (max-width:1220px){
+    #wrap{ grid-template-columns: 1fr; }
+    .panel{ min-height:360px; }
+    canvas{ height:420px; }
+  }
 </style>
 </head>
 <body>
-<div id="gameWrap">
+<div id="wrap">
   <div class="panel">
-    <canvas id="game" width="1640" height="1160"></canvas>
+    <canvas id="game" width="1480" height="1160"></canvas>
   </div>
 
-  <div class="panel" style="height:620px; overflow:auto;">
-    <div class="title">Town of Bramblewick</div>
+  <div class="panel">
+    <div class="title">Bramblewick || Defend the Town</div>
+
     <div class="hud">
-      <div>Gold: <span id="gold">200</span></div>
-      <div>Wave: <span id="wave">0</span></div>
-      <div>Villagers: <span id="villagers">5</span></div>
+      <div class="item">Gold: <span id="gold">200</span></div>
+      <div class="item">Wave: <span id="wave">0</span></div>
+      <div class="item">Villagers: <span id="villagers">5</span></div>
+      <div class="item">Iron: <span id="iron">0</span></div>
+      <div class="item">Potions: <span id="potions">0</span></div>
+    </div>
+
+    <div class="muted">Maps</div>
+    <div class="slot">
+      <div class="mapsList" id="mapsList"></div>
+      <div class="mutedSmall" id="mapDesc">Select a map</div>
     </div>
 
     <div class="muted">Build Towers</div>
-    <div class="list">
-      <div class="towerBtn" data-type="archer">
-        <div style="width:36px;height:36px;border-radius:6px;background:#e6c07b;display:flex;align-items:center;justify-content:center;font-weight:700;color:#2b1a00">A</div>
-        <div>
-          <div style="font-weight:700">Archer Tower</div>
-          <div class="muted">Fast, single target</div>
-        </div>
-        <div style="margin-left:auto" class="muted">Cost: <span>75</span></div>
-      </div>
-
-      <div class="towerBtn" data-type="mage">
-        <div style="width:36px;height:36px;border-radius:6px;background:#8f6ad1;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff">M</div>
-        <div>
-          <div style="font-weight:700">Mage Tower</div>
-          <div class="muted">AoE magic</div>
-        </div>
-        <div style="margin-left:auto" class="muted">Cost: <span>110</span></div>
-      </div>
-    </div>
-
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+    <div id="buildList" class="slot"></div>
 
     <div class="muted">Selected</div>
-    <div id="selectedPanel" class="slot">
-      <div>No tower selected</div>
-      <div>
-        <button class="small" id="upgradeBtn" disabled>Upgrade</button>
-        <button class="small" id="sellBtn" disabled>Sell</button>
-      </div>
-    </div>
-
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+    <div id="selectedPanel" class="slot">No tower selected</div>
 
     <div class="muted">Jobs</div>
-    <div class="smallRow" style="margin-top:6px">
-      <div>Gold Mine</div>
-      <div>
-        <button class="small" id="assignMine">Assign</button>
-        <button class="small" id="unassignMine">Unassign</button>
-      </div>
+    <div class="slot">
+      <div class="smallRow"><div>Miners</div><div><button class="small" id="assignMiner">+</button><button class="small" id="unassignMiner">−</button><span id="minersAssigned" style="margin-left:8px">0</span></div></div>
+      <div class="smallRow"><div>Repairers</div><div><button class="small" id="assignRepair">+</button><button class="small" id="unassignRepair">−</button><span id="repairAssigned" style="margin-left:8px">0</span></div></div>
+      <div class="smallRow"><div>Researchers</div><div><button class="small" id="assignResearch">+</button><button class="small" id="unassignResearch">−</button><span id="researchAssigned" style="margin-left:8px">0</span></div></div>
+      <div class="smallRow"><div>Crafters</div><div><button class="small" id="assignCraft">+</button><button class="small" id="unassignCraft">−</button><span id="craftAssigned" style="margin-left:8px">0</span></div></div>
     </div>
-    <div class="smallRow" style="margin-top:6px">
-      <div>Repair</div>
-      <div>
-        <button class="small" id="assignRepair">Assign</button>
-        <button class="small" id="unassignRepair">Unassign</button>
-      </div>
-    </div>
-
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
 
     <div class="muted">Crafting</div>
-    <div style="margin-top:8px;" class="slot">
-      <div>
-        <div style="font-weight:700">Damage Potion</div>
-        <div class="muted">Cost: 5 Iron</div>
+    <div class="slot">
+      <div class="smallRow">
+        <div><strong>Damage Potion</strong><div class="mutedSmall">Cost: 5 Iron — Buff towers +25% for 20s</div></div>
+        <div><button class="small" id="craftPotion">Craft</button></div>
       </div>
-      <div>
-        <button class="small" id="craftPotion">Craft</button>
+      <div class="smallRow" style="margin-top:8px">
+        <div><strong>Ballista Bolt</strong><div class="mutedSmall">Cost: 8 Iron — One shot +20 siege damage</div></div>
+        <div><button class="small" id="craftBolt">Craft</button></div>
       </div>
     </div>
-    <div style="margin-top:8px" class="slot">
-      <div>Iron: <span id="iron">0</span></div>
-      <div>Potions: <span id="potions">0</span></div>
+
+    <div class="muted">Controls</div>
+    <div class="slot">
+      <div style="display:flex;gap:8px;"><button class="small" id="startWave">Start Next Wave</button><button class="small" id="pauseBtn">Pause</button><button class="small" id="speedBtn">x1</button></div>
+      <div style="display:flex;gap:8px;margin-top:8px;"><button class="small" id="saveBtn">Save</button><button class="small" id="loadBtn">Load</button><button class="small" id="resetBtn">Reset</button></div>
     </div>
 
-    <hr style="border:none;border-top:1px solid rgba(255,255,255,0.03);margin:12px 0;">
+    <div class="muted">Wave Preview</div>
+    <div id="wavePreview" class="slot mutedSmall">Ready</div>
 
-    <div class="muted">Wave Controls</div>
-    <div style="display:flex;gap:8px;margin-top:8px;">
-      <button id="startWave" class="btn small">Start Next Wave</button>
-      <button id="fastForward" class="small">x1 Speed</button>
-    </div>
-
-    <div class="footer">Demo: canvas-only art. Extend towers / enemies in code. Day/night affects enemy strength.</div>
+    <div class="footer">Tip: place support towers near clusters, use Siege on armored units, try map-specific strategies. Save often!</div>
   </div>
 </div>
 
 <script>
-/* -------------------------
-   Tiny TD: HTML5 Canvas
-   Single-file demo (extendable)
-   ------------------------- */
+/* Multi-map expandable TD single-file
+   - Map selection, branching paths, map-specific waves
+   - More enemies, upgrades, spawn variants
+   - No external assets
+*/
 
+/* -------------------------
+   Canvas & basic grid
+   ------------------------- */
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-let W = canvas.width, H = canvas.height;
-function resizeCanvas(){ /* keep internal resolution large for crispness */
-  const ratio = 1; canvas.style.width = (820*ratio) + 'px'; canvas.style.height = (620*ratio) + 'px';
-}
-resizeCanvas();
+const W = canvas.width, H = canvas.height;
+const GRID = { cols: 12, rows: 10, tile: 110 };
 
 /* -------------------------
-   Game state & constants
+   Game state
    ------------------------- */
-
-const GRID = { cols: 14, rows: 10, tile: 82 }; // grid for building
-const spawnPoint = { x: -60, y: GRID.tile*4 + 20 };
-const goalPoint = { x: GRID.tile*GRID.cols + 60, y: GRID.tile*5 + 10 };
-
 let game = {
-  gold: 200,
-  villagers: 5,
-  assigned: { mine:0, repair:0 },
-  iron: 0,
-  potions: 0,
-  waveIndex: 0,
-  inWave: false,
-  timeScale: 1,
-  isNight: false,
-  dayTime: 0, // 0..1
-  dayLength: 40, // seconds for full cycle
-  towers: [],
-  enemies: [],
-  projectiles: [],
+  gold: 300, iron:0, potions:0, bolts:0,
+  villagers: 6,
+  assigned: { miners:0, repairers:0, researchers:0, crafters:0 },
+  waveIndex:0, inWave:false, timeScale:1, paused:false,
+  dayTime:0, dayLength:60, isNight:false,
+  towers:[], enemies:[], projectiles:[],
   pools: { enemies:[], projs:[] },
-  selectedTower: null,
-  waveQueue: [],
-  enemyPrefabs: null,
-  runningSpawner: null
+  selectedTower: null, runningSpawner: null,
+  analytics: { bestWave:0 },
+  currentMapIndex: 0
 };
+
+/* -------------------------
+   Enemies catalog (expanded)
+   ------------------------- */
+const ENEMIES = {
+  goblin: { id:'goblin', name:'Goblin', hp:40, speed:70, gold:6, iron:1, size:14, flags:{air:false, armored:false} },
+  orc:    { id:'orc', name:'Orc', hp:120, speed:38, gold:20, iron:3, size:20, flags:{air:false, armored:true} },
+  shield: { id:'shield', name:'Shield-Bearer', hp:160, speed:30, gold:25, iron:2, size:22, flags:{air:false, armored:true, shield:true} },
+  troll:  { id:'troll', name:'Troll', hp:500, speed:18, gold:120, iron:8, size:34, flags:{air:false, regen:true} },
+  wyvern: { id:'wyvern', name:'Wyvern', hp:90, speed:110, gold:30, iron:0, size:18, flags:{air:true} },
+  necro:  { id:'necro', name:'Necromancer', hp:150, speed:34, gold:40, iron:2, size:20, flags:{air:false, caster:true} },
+
+  // new types
+  assassin:{ id:'assassin', name:'Assassin', hp:80, speed:160, gold:45, iron:0, size:12, flags:{stealth:true, air:false} },
+  drake:   { id:'drake', name:'Drake', hp:340, speed:48, gold:140, iron:6, size:30, flags:{armored:true, air:true} },
+  wyrm_boss:{ id:'wyrm_boss', name:'Wyrm Boss', hp:1800, speed:28, gold:800, iron:40, size:56, flags:{boss:true, regen:true, armored:true} }
+};
+
+/* -------------------------
+   Towers catalog (expanded, with specializations)
+   ------------------------- */
+const TOWER_CATALOG = {
+  archer: { id:'archer', name:'Archer', cost:80, range:180, damage:18, fireRate:1.6, color:'#e6c07b', canTargetAir:true, tags:['single'] },
+  mage:   { id:'mage', name:'Mage', cost:130, range:150, damage:12, fireRate:0.9, aoe:48, color:'#8f6ad1', canTargetAir:true, tags:['aoe','magic'] },
+  siege:  { id:'siege', name:'Siege', cost:160, range:200, damage:60, fireRate:0.6, color:'#9a6a4b', canTargetAir:false, tags:['armorpierce'] },
+  support:{ id:'support', name:'Support', cost:120, range:140, damage:0, fireRate:0.6, aura:{dmg:8, rate:1.05}, color:'#2a9d8f', canTargetAir:false, tags:['aura'] },
+  scout:  { id:'scout', name:'Scout', cost:70, range:120, damage:8, fireRate:2.2, color:'#a4d3ff', canTargetAir:true, tags:['fast'] },
+  sentinel:{ id:'sentinel', name:'Sentinel', cost:200, range:220, damage:28, fireRate:1.0, color:'#c2c2ff', canTargetAir:true, tags:['detector'] }
+};
+
+/* -------------------------
+   Maps: waypoints, waves, visuals
+   - Each map has spawnPoints array, goal, waypoints (can be branched)
+   - waves: per-map wave table
+   ------------------------- */
+const MAPS = [
+  {
+    id:'fields', name:'Bramblewick Fields', desc:'Wide fields with a winding dirt road. Good for learning.',
+    bgTiles: ['#3f6a5b','#486d5e'],
+    roadColor:'rgba(60,40,20,0.6)',
+    spawnPoints:[ {x:-80,y:GRID.tile*4+30} ],
+    goals:[ {x:GRID.tile*GRID.cols + 80, y: GRID.tile*5 + 20} ],
+    // single-path waypoints
+    waypoints:[
+      [{x: -80, y: GRID.tile*4 + 30},{x: 220, y: GRID.tile*4 + 30},{x: 420, y: GRID.tile*6 + 20},{x: 780, y: GRID.tile*6 + 20},{x: 1100, y: GRID.tile*4 + 20},{x: GRID.tile*GRID.cols + 60, y: GRID.tile*4 + 20}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:8}],
+      [{t:ENEMIES.goblin,c:12}],
+      [{t:ENEMIES.goblin,c:12},{t:ENEMIES.orc,c:3}],
+      [{t:ENEMIES.shield,c:2},{t:ENEMIES.goblin,c:14}],
+      [{t:ENEMIES.wyvern,c:3},{t:ENEMIES.goblin,c:8}],
+      [{t:ENEMIES.orc,c:8},{t:ENEMIES.shield,c:3}],
+      [{t:ENEMIES.necro,c:1},{t:ENEMIES.goblin,c:12}],
+      [{t:ENEMIES.troll,c:1}],
+      [{t:ENEMIES.goblin,c:24},{t:ENEMIES.orc,c:8}],
+      [{t:ENEMIES.wyrm_boss,c:1}] // boss on map 1 wave 10
+    ]
+  },
+
+  {
+    id:'pass', name:'Frostfang Pass', desc:'Narrow pass with multiple branches — enemies split paths.',
+    bgTiles: ['#5d7486','#4b6676'],
+    roadColor:'rgba(200,200,255,0.5)',
+    spawnPoints:[ {x:-80,y:GRID.tile*2+20},{x:-80,y:GRID.tile*7+20} ],
+    goals:[ {x:GRID.tile*GRID.cols + 80, y: GRID.tile*5 + 20} ],
+    // two branches (index 0 = left-entry path, index 1 = right-entry path)
+    waypoints:[
+      [{x:-80,y:GRID.tile*2+20},{x:200,y:GRID.tile*2+20},{x:420,y:GRID.tile*3+20},{x:700,y:GRID.tile*3+20},{x:1000,y:GRID.tile*4+20},{x:GRID.tile*GRID.cols+30,y:GRID.tile*5+20}],
+      [{x:-80,y:GRID.tile*7+20},{x:220,y:GRID.tile*7+20},{x:420,y:GRID.tile*6+20},{x:700,y:GRID.tile*6+20},{x:980,y:GRID.tile*5+40},{x:GRID.tile*GRID.cols+30,y:GRID.tile*5+20}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.goblin,c:12},{t:ENEMIES.assassin,c:2}],
+      [{t:ENEMIES.orc,c:6}],
+      [{t:ENEMIES.wyvern,c:4}],
+      [{t:ENEMIES.shield,c:6},{t:ENEMIES.orc,c:8}],
+      [{t:ENEMIES.necro,c:2},{t:ENEMIES.assassin,c:4}],
+      [{t:ENEMIES.drake,c:2}],
+      [{t:ENEMIES.troll,c:2}],
+      [{t:ENEMIES.drake,c:3},{t:ENEMIES.orc,c:8}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  },
+
+  {
+    id:'cliff', name:'Ravencliff', desc:'Cliffside route with long ranges and aerial advantages.',
+    bgTiles: ['#554a3b','#6b5f4e'],
+    roadColor:'rgba(90,60,40,0.6)',
+    spawnPoints:[ {x:-80,y:GRID.tile*5+10} ],
+    goals:[ {x:GRID.tile*GRID.cols + 80, y: GRID.tile*5 + 20} ],
+    waypoints:[
+      [{x:-80,y:GRID.tile*5+10},{x:260,y:GRID.tile*5+10},{x:460,y:GRID.tile*4+40},{x:760,y:GRID.tile*4+40},{x:1040,y:GRID.tile*3+40},{x:GRID.tile*GRID.cols+30,y:GRID.tile*5+20}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:14}],
+      [{t:ENEMIES.wyvern,c:6}],
+      [{t:ENEMIES.assassin,c:3},{t:ENEMIES.goblin,c:12}],
+      [{t:ENEMIES.necro,c:3}],
+      [{t:ENEMIES.drake,c:2},{t:ENEMIES.orc,c:10}],
+      [{t:ENEMIES.troll,c:2}],
+      [{t:ENEMIES.wyvern,c:8},{t:ENEMIES.assassin,c:4}],
+      [{t:ENEMIES.drake,c:4}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  }
+];
+
+/* -------------------------
+   Pools init
+   ------------------------- */
+function initPools(){
+  for (let i=0;i<200;i++) game.pools.enemies.push({});
+  for (let i=0;i<300;i++) game.pools.projs.push({});
+}
+initPools();
 
 /* -------------------------
    Utilities
    ------------------------- */
-function rand(min,max){ return Math.random()*(max-min)+min; }
+function rand(a,b){ return Math.random()*(b-a)+a; }
 function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
-function dist(a,b){let dx=a.x-b.x,dy=a.y-b.y;return Math.hypot(dx,dy);}
 
 /* -------------------------
-   Simple map & path (hardcoded waypoints)
+   Spawning & despawning
    ------------------------- */
-const waypoints = [];
-for(let i=0;i<7;i++){
-  waypoints.push({ x: GRID.tile*(i*2+1) - 50, y: GRID.tile*4 + 30 });
-}
-waypoints.push({ x: goalPoint.x - 40, y: goalPoint.y });
-
-/* -------------------------
-   Enemy definitions
-   ------------------------- */
-const ENEMY_TYPES = {
-  goblin: { name:'Goblin', hp:35, speed: 60, gold:6, iron:1, color:'#E26A2C', size:14},
-  orc:    { name:'Orc', hp:90, speed: 35, gold:20, iron:3, color:'#7F5539', size:18}
-};
-
-/* -------------------------
-   Tower definitions
-   ------------------------- */
-const TOWER_TYPES = {
-  archer: { name:'Archer', cost:75, range:170, damage:15, fireRate:1.4, color:'#e6c07b' },
-  mage:   { name:'Mage',   cost:110, range:140, damage:8, fireRate:0.8, aoe:48, color:'#8f6ad1' }
-};
-
-/* -------------------------
-   Pooling helpers
-   ------------------------- */
-function spawnEnemy(type, x, y){
-  let e = game.pools.enemies.pop();
-  if (!e) e = { alive:false };
-  e.type = type;
-  e.x = x; e.y = y;
-  e.wayIndex = 0;
-  e.maxHP = type.hp * (1 + game.waveIndex * 0.12);
+function spawnEnemy(type, spawn, pathIndex){
+  let e = game.pools.enemies.pop() || {};
+  e.tpl = type; e.x = spawn.x; e.y = spawn.y; e.wayIndex = 0; e.pathIndex = pathIndex || 0;
+  e.maxHP = Math.round(type.hp * (1 + game.waveIndex * 0.18));
   e.hp = e.maxHP;
-  e.speed = type.speed * (game.isNight? 1.15 : 1);
-  e.gold = Math.ceil(type.gold * (1 + game.waveIndex*0.03));
+  e.speed = type.speed * (game.isNight ? 1.08 : 1);
+  e.gold = Math.ceil(type.gold * (1 + game.waveIndex*0.04));
   e.iron = type.iron;
-  e.color = type.color;
+  e.flags = Object.assign({}, type.flags);
   e.size = type.size;
   e.alive = true;
   game.enemies.push(e);
@@ -222,407 +269,517 @@ function spawnEnemy(type, x, y){
 }
 function despawnEnemy(e){
   e.alive = false;
+  const i = game.enemies.indexOf(e); if (i!==-1) game.enemies.splice(i,1);
   game.pools.enemies.push(e);
-  const idx = game.enemies.indexOf(e); if (idx!==-1) game.enemies.splice(idx,1);
 }
+function spawnProj(x,y,target,damage,color,meta={}){ let p = game.pools.projs.pop() || {}; p.x=x; p.y=y; p.target=target; p.damage=damage; p.color=color; p.meta=meta; p.speed = meta.speed || 420; p.alive=true; game.projectiles.push(p); return p; }
+function despawnProj(p){ p.alive = false; const i = game.projectiles.indexOf(p); if (i!==-1) game.projectiles.splice(i,1); game.pools.projs.push(p); }
 
 /* -------------------------
-   Projectile
+   Tower creation & upgrades (tiered & branching)
    ------------------------- */
-function spawnProj(x,y,target,damage,color,aoe=false){
-  let p = game.pools.projs.pop() || { alive:false };
-  p.x = x; p.y = y; p.target = target; p.damage = damage; p.speed = 400; p.color=color; p.alive=true; p.aoe = aoe;
-  game.projectiles.push(p); return p;
-}
-function despawnProj(p){ p.alive=false; game.pools.projs.push(p); const idx=game.projectiles.indexOf(p); if(idx!==-1) game.projectiles.splice(idx,1); }
-
-/* -------------------------
-   Towers: place, update, draw
-   ------------------------- */
-function createTower(typeKey, gx, gy){
-  const tdata = TOWER_TYPES[typeKey];
-  if (game.gold < tdata.cost) { alert('Not enough gold'); return null; }
-  game.gold -= tdata.cost;
+function createTower(kind, gx, gy){
+  const def = TOWER_CATALOG[kind];
+  if (!def) return null;
+  if (game.gold < def.cost){ alert('Not enough gold'); return null; }
+  // do not build on road: detect if tile is near any map waypoint line
+  if (isOnRoad(gx,gy)) { alert('Cannot build on the road'); return null; }
+  for (let t of game.towers) if (t.gx===gx && t.gy===gy) { alert('Tile occupied'); return null; }
+  game.gold -= def.cost;
   const t = {
-    kind: typeKey, x: gx, y: gy, px: gx*GRID.tile+GRID.tile/2, py: gy*GRID.tile+GRID.tile/2,
-    level:1, damage: tdata.damage, range: tdata.range, fireRate: tdata.fireRate, cooldown:0, color:tdata.color
+    id: 't' + Math.random().toString(36).slice(2,8),
+    kind: def.id, gx, gy, px: gx*GRID.tile + GRID.tile/2, py: gy*GRID.tile + GRID.tile/2,
+    level:1, damage:def.damage, range:def.range, fireRate:def.fireRate, cooldown:0, color:def.color,
+    canTargetAir:def.canTargetAir, tags:def.tags.slice(), aura: def.aura ? {...def.aura} : null,
+    upgrades: generateUpgradesFor(def.id), _auraActive:null, _repairBuff:0, _repairExpire:0, spec:null
   };
-  game.towers.push(t);
-  return t;
+  game.towers.push(t); updateUI(); refreshSelected(); return t;
 }
-function upgradeTower(t){
-  const cost = Math.floor(50 * (1 + t.level*0.6));
-  if (game.gold < cost) { alert('Not enough gold'); return; }
-  game.gold -= cost; t.level++; t.damage *= 1.3; t.range += 12; t.fireRate *= 1.05;
+function isOnRoad(gx,gy){
+  // simple check: if tile center is within 36px of any waypoint segment
+  const map = MAPS[game.currentMapIndex]; if (!map) return false;
+  const px = gx*GRID.tile + GRID.tile/2, py = gy*GRID.tile + GRID.tile/2;
+  for (let path of map.waypoints){
+    for (let i=0;i<path.length-1;i++){
+      const a = path[i], b = path[i+1];
+      const dist = pointToSegmentDistance(px,py,a.x,a.y,b.x,b.y);
+      if (dist < 44) return true;
+    }
+  }
+  return false;
+}
+function pointToSegmentDistance(px,py,x1,y1,x2,y2){
+  const A = px - x1, B = py - y1, C = x2 - x1, D = y2 - y1;
+  const dot = A*C + B*D; const len_sq = C*C + D*D; let param = -1;
+  if (len_sq !== 0) param = dot / len_sq;
+  let xx, yy;
+  if (param < 0) { xx = x1; yy = y1; } else if (param > 1) { xx = x2; yy = y2; } else { xx = x1 + param * C; yy = y1 + param * D; }
+  const dx = px - xx, dy = py - yy; return Math.hypot(dx,dy);
+}
+function generateUpgradesFor(id){
+  const base = TOWER_CATALOG[id];
+  // base upgrades + specialization paths (two branches)
+  const common = [
+    { name:'Mk I — Damage', cost: Math.floor(base.cost*0.6), apply: (t)=>{ t.damage *= 1.2; } },
+    { name:'Mk I — Speed', cost: Math.floor(base.cost*0.7), apply: (t)=>{ t.fireRate *= 1.18; } },
+    { name:'Extended Reach', cost: Math.floor(base.cost*0.8), apply: (t)=>{ t.range += 28; } }
+  ];
+  const specs = {
+    archer: [
+      { name:'Piercing Arrows', cost: base.cost*0.9, apply:(t)=>{ t.tags.push('pierce'); } },
+      { name:'Multi-Shot', cost: base.cost*1.2, apply:(t)=>{ t.tags.push('multishot'); } }
+    ],
+    mage: [
+      { name:'Mana Burst', cost: base.cost*0.9, apply:(t)=>{ t.tags.push('burst'); t.aoe = (t.aoe||48) + 16; } },
+      { name:'Silence Field', cost: base.cost*1.3, apply:(t)=>{ t.tags.push('silence'); } }
+    ],
+    siege: [
+      { name:'Armor Piercer II', cost: base.cost*1.0, apply:(t)=>{ t.damage *= 1.4; } },
+      { name:'Ballista Mode', cost: base.cost*1.6, apply:(t)=>{ t.tags.push('siege_explosive'); t.range += 40; } }
+    ],
+    support: [
+      { name:'Greater Aura', cost: base.cost*1.0, apply:(t)=>{ if (!t.aura) t.aura={dmg:4,rate:1.02}; t.aura.dmg += 6; t.range += 30; } },
+      { name:'Repair Module', cost: base.cost*1.4, apply:(t)=>{ t.tags.push('repair'); } }
+    ],
+    scout: [
+      { name:'Rapid Shots', cost: base.cost*0.6, apply:(t)=>{ t.fireRate *= 1.5; } },
+      { name:'Hunter Rounds', cost: base.cost*1.1, apply:(t)=>{ t.damage *= 1.5; } }
+    ],
+    sentinel: [
+      { name:'True Sight', cost: base.cost*1.2, apply:(t)=>{ t.tags.push('detect'); } },
+      { name:'Longbow Mode', cost: base.cost*1.4, apply:(t)=>{ t.range += 60; t.damage += 8; } }
+    ]
+  };
+  return common.concat(specs[id] || []);
+}
+function upgradeTower(t, idx){
+  if (!t || !t.upgrades || !t.upgrades[idx]) return;
+  const up = t.upgrades[idx];
+  if (game.gold < up.cost){ alert('Not enough gold'); return; }
+  game.gold -= up.cost; up.apply(t); t.level++; t.upgrades.splice(idx,1); updateUI(); refreshSelected();
 }
 function sellTower(t){
-  const refund = Math.floor((TOWER_TYPES[t.kind].cost * 0.6) * (1 + (t.level-1)*0.15));
-  game.gold += refund;
-  const idx = game.towers.indexOf(t); if (idx!==-1) game.towers.splice(idx,1);
-  if (game.selectedTower === t) game.selectedTower = null;
+  const refund = Math.floor((TOWER_CATALOG[t.kind].cost*0.6) * (1 + (t.level-1)*0.12));
+  game.gold += refund; game.towers = game.towers.filter(x=>x.id!==t.id); if (game.selectedTower===t) game.selectedTower=null; updateUI(); refreshSelected();
 }
 
 /* -------------------------
-   Wave spawner
+   Tower shooting logic (extended)
+   ------------------------- */
+function towerShoot(t, target){
+  const potionBonus = (game.potions > 0) ? 1.25 : 1;
+  let dmg = t.damage * potionBonus;
+  if (t.tags.includes('armorpierce') && target.flags && target.flags.armored) dmg *= 1.6;
+  if (t.tags.includes('pierce')) dmg *= 1.12;
+  if (t.tags.includes('multishot')){
+    // spawn 3 projectiles to nearby enemies
+    const nearby = game.enemies.filter(e=>Math.hypot(e.x-t.px,e.y-t.py) <= t.range).slice(0,3);
+    for (let e of nearby) spawnProj(t.px,t.py,e,dmg,'#fff',{aoe:false,speed:520});
+    return;
+  }
+  if (t.tags.includes('burst')){
+    // burst: 3 quick shots
+    for (let i=0;i<3;i++) setTimeout(()=>{ if (target && target.alive) spawnProj(t.px,t.py,target,dmg,'#d198ff',{aoe:t.aoe,speed:420}); }, i*120);
+    return;
+  }
+  if (t.kind === 'mage'){
+    spawnProj(t.px, t.py, target, dmg, '#d198ff', { aoe: t.aoe || 48, radius: t.aoe || 48, speed:420 });
+  } else {
+    spawnProj(t.px, t.py, target, dmg, '#fff', { aoe:false, speed:520 });
+  }
+}
+
+/* -------------------------
+   Wave spawner (map-specific waves & branching)
    ------------------------- */
 function spawnWave(){
   if (game.inWave) return;
-  game.waveIndex++;
-  document.getElementById('wave').textContent = game.waveIndex;
+  const map = MAPS[game.currentMapIndex];
+  if (!map) return;
+  if (game.waveIndex >= map.waves.length){ alert('All waves on this map cleared — you win!'); return; }
+  game.waveIndex++; document.getElementById('wave').textContent = game.waveIndex;
   game.inWave = true;
-  const pattern = [];
-  // simple progression: wave decides mix
-  const base = game.waveIndex;
-  if (base < 3) {
-    pattern.push({type:ENEMY_TYPES.goblin, count: 6 + base*2});
-  } else if (base < 6) {
-    pattern.push({type:ENEMY_TYPES.goblin, count: 8 + base});
-    pattern.push({type:ENEMY_TYPES.orc, count: Math.max(1, Math.floor(base/2))});
-  } else {
-    pattern.push({type:ENEMY_TYPES.goblin, count: 6 + base});
-    pattern.push({type:ENEMY_TYPES.orc, count: 2 + Math.floor(base/2)});
-  }
-
-  // wave coroutine
-  let i=0, j=0, spawnDelay = 0.7;
+  const pattern = map.waves[game.waveIndex - 1];
+  let groupIndex = 0, countIndex = 0;
+  const intervalMs = 700;
+  // choose which spawn to use if multiple: randomize and sometimes split
   game.runningSpawner = setInterval(()=>{
-    if (i>=pattern.length){ 
-      // check all enemies dead to finish wave
+    if (game.paused) return;
+    if (groupIndex >= pattern.length){
       if (game.enemies.length === 0){
         clearInterval(game.runningSpawner); game.runningSpawner = null; game.inWave=false;
+        game.analytics.bestWave = Math.max(game.analytics.bestWave, game.waveIndex);
+        document.getElementById('wavePreview').textContent = 'Wave ' + game.waveIndex + ' cleared!';
+        updateUI();
       }
       return;
     }
-    const group = pattern[i];
-    if (j < group.count){
-      spawnEnemy(group.type, spawnPoint.x, spawnPoint.y + rand(-10,10));
-      j++;
-    } else {
-      i++; j=0;
-    }
-  }, spawnDelay * 1000 / game.timeScale);
+    const grp = pattern[groupIndex];
+    if (countIndex < grp.c){
+      // randomization: if map has multiple spawnPoints, use one randomly;
+      // for maps with multiple waypoint branches, randomly choose a branch index
+      const spawn = map.spawnPoints[Math.floor(Math.random()*map.spawnPoints.length)];
+      const pathIndex = map.waypoints.length>1 ? Math.floor(Math.random()*map.waypoints.length) : 0;
+      spawnEnemy(grp.t, spawn, pathIndex);
+      countIndex++;
+    } else { groupIndex++; countIndex=0; }
+    updateWavePreview();
+  }, intervalMs / game.timeScale);
 }
 
 /* -------------------------
-   Villager jobs processing
-   ------------------------- */
-setInterval(()=>{
-  // each tick (5s) generate gold for miners
-  const miners = game.assigned.mine;
-  if (miners>0){
-    const gained = miners * (3 + Math.floor(game.waveIndex*0.2));
-    game.gold += gained;
-  }
-  // repair: heal nearby tower a bit
-  const repairers = game.assigned.repair;
-  if (repairers>0 && game.towers.length>0){
-    for(let k=0;k<repairers;k++){
-      const t = game.towers[Math.floor(Math.random()*game.towers.length)];
-      // "repair" implemented as small damage buff for next 10s
-      t._repairBuff = 5 + 2*repairers;
-      t._repairExpire = Date.now() + 8000;
-    }
-  }
-
-  // update UI
-  updateUI();
-}, 5000);
-
-/* -------------------------
-   Game update loop
-   ------------------------- */
-let last = performance.now();
-function update(now){
-  const dt = (now - last) / 1000 * game.timeScale; last = now;
-  // day/night
-  game.dayTime += dt / game.dayLength;
-  if (game.dayTime >= 1) game.dayTime -= 1;
-  game.isNight = (game.dayTime > 0.7 || game.dayTime < 0.2);
-  // enemies
-  for (let e of game.enemies.slice()){
-    // waypoint movement
-    const wp = waypoints[Math.min(e.wayIndex, waypoints.length-1)];
-    const dx = wp.x - e.x, dy = wp.y - e.y;
-    const distTo = Math.hypot(dx,dy);
-    if (distTo < 6){
-      e.wayIndex++;
-      if (e.wayIndex >= waypoints.length){
-        // reached town
-        game.gold = Math.max(0, game.gold - Math.floor((e.maxHP/20)));
-        despawnEnemy(e); continue;
-      }
-    } else {
-      const sp = e.speed * dt;
-      e.x += dx / distTo * sp;
-      e.y += dy / distTo * sp;
-    }
-  }
-
-  // towers target & shoot
-  for (let t of game.towers){
-    // expire repair buff
-    if(t._repairExpire && Date.now() > t._repairExpire){ t._repairBuff = 0; t._repairExpire = 0; }
-    t.cooldown -= dt;
-    if (t.cooldown <= 0){
-      // find target
-      let target = null; let bestD = 99999;
-      for (let e of game.enemies){
-        const d = Math.hypot(e.x - t.px, e.y - t.py);
-        if (d <= t.range && d < bestD){
-          bestD = d; target = e;
-        }
-      }
-      if (target){
-        // shoot
-        const buff = (t._repairBuff || 0);
-        const potionBonus = game.potions > 0 ? 1.25 : 1;
-        const dmg = t.damage * (1 + buff/100) * potionBonus;
-        if (t.kind === 'archer'){
-          spawnProj(t.px, t.py, target, dmg, '#fff', false);
-        } else if (t.kind === 'mage'){
-          // mage fires aoe projectile which applies to enemies near impact
-          spawnProj(t.px, t.py, target, dmg, '#a5a', true);
-        }
-        t.cooldown = 1 / t.fireRate;
-      }
-    }
-  }
-
-  // projectiles move
-  for (let p of game.projectiles.slice()){
-    if (!p.target || !p.target.alive){ despawnProj(p); continue; }
-    const dx = p.target.x - p.x, dy = p.target.y - p.y; const d = Math.hypot(dx,dy);
-    const step = p.speed * dt;
-    if (d <= step+2){
-      // hit
-      if (p.aoe){
-        // damage all enemies within radius 40
-        for (let e of game.enemies.slice()){
-          if (Math.hypot(e.x - p.x, e.y - p.y) <= 44){
-            e.hp -= p.damage;
-            if (e.hp <= 0) killEnemy(e);
-          }
-        }
-      } else {
-        p.target.hp -= p.damage;
-        if (p.target.hp <= 0) killEnemy(p.target);
-      }
-      despawnProj(p);
-    } else {
-      p.x += dx / d * step;
-      p.y += dy / d * step;
-    }
-  }
-
-  // simple natural regen for towers? none — but repair job gives temporary buff
-  // end wave detection
-  if (!game.inWave && game.runningSpawner === null && game.waveIndex>0 && game.enemies.length === 0){
-    // wave complete; small bonus
-    // no-op for now
-  }
-
-  // update UI and render
-  updateUI();
-  render();
-  requestAnimationFrame(update);
-}
-requestAnimationFrame(update);
-
-/* -------------------------
-   Kill enemy
+   Kill & drops
    ------------------------- */
 function killEnemy(e){
   game.gold += e.gold;
-  // drop iron resource chance
-  if (Math.random() < 0.35 + game.waveIndex*0.01){
-    game.iron += e.iron;
-  }
-  // chance potion drop (rare)
-  if (Math.random() < 0.03) { game.potions++; }
+  if (Math.random() < 0.45) game.iron += e.iron;
+  if (Math.random() < 0.035) game.potions++;
   despawnEnemy(e);
+  updateUI();
 }
 
 /* -------------------------
-   Render
+   Projectiles processing
    ------------------------- */
-function drawRoundedRect(x,y,w,h,r,fill){
-  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
-  if (fill){ ctx.fillStyle=fill; ctx.fill(); } else ctx.stroke();
+function processProjectiles(dt){
+  for (let p of game.projectiles.slice()){
+    const tgt = p.target;
+    if (!tgt || !tgt.alive){ despawnProj(p); continue; }
+    const dx = tgt.x - p.x, dy = tgt.y - p.y; const d = Math.hypot(dx,dy);
+    const step = p.speed * dt;
+    if (d <= step + 2){
+      if (p.meta.aoe){
+        for (let e of game.enemies.slice()){
+          if (Math.hypot(e.x - p.x, e.y - p.y) <= (p.meta.radius || 48)){
+            e.hp -= p.damage; if (e.hp <= 0) killEnemy(e);
+          }
+        }
+      } else {
+        tgt.hp -= p.damage; if (tgt.hp <= 0) killEnemy(tgt);
+      }
+      despawnProj(p);
+    } else { p.x += dx/d * step; p.y += dy/d * step; }
+  }
 }
 
+/* -------------------------
+   Waypoint retrieval (per enemy pathIndex)
+   ------------------------- */
+function getWaypointFor(enemy, idx){
+  const map = MAPS[game.currentMapIndex];
+  if (!map) return null;
+  const paths = map.waypoints;
+  const path = paths[enemy.pathIndex || 0] || paths[0];
+  return path[idx] || null;
+}
+
+/* -------------------------
+   Main loop
+   ------------------------- */
+let last = performance.now();
+function loop(now){
+  const dt = (now - last)/1000 * game.timeScale; last = now;
+  if (!game.paused){
+    game.dayTime += dt / game.dayLength;
+    if (game.dayTime >= 1) game.dayTime -= 1;
+    game.isNight = (game.dayTime > 0.7 || game.dayTime < 0.18);
+
+    for (let e of game.enemies.slice()){
+      const wp = getWaypointFor(e, e.wayIndex);
+      if (!wp){
+        // reached end -> damage gold/villagers and despawn
+        game.gold = Math.max(0, game.gold - Math.floor(e.maxHP/30));
+        game.villagers = Math.max(0, game.villagers - (e.flags && e.flags.boss ? 3 : 1));
+        despawnEnemy(e); updateUI(); continue;
+      }
+      const dx = wp.x - e.x, dy = wp.y - e.y; const distTo = Math.hypot(dx,dy);
+      if (distTo < 8) e.wayIndex++; else { const sp = e.speed * dt; e.x += dx/distTo * sp; e.y += dy/distTo * sp; }
+      if (e.flags && e.flags.regen) e.hp = Math.min(e.maxHP, e.hp + 6*dt);
+    }
+
+    for (let t of game.towers){
+      if (t.cooldown > 0) t.cooldown -= dt;
+      if (t.aura){ for (let ot of game.towers){ const d = Math.hypot(ot.px - t.px, ot.py - t.py); if (ot !== t && d <= t.range){ ot._auraActive = t.aura; ot._auraExpiry = Date.now() + 500; } } }
+      if (t.cooldown <= 0 && (!t.aura)){
+        let candidates = game.enemies.filter(e => { const d = Math.hypot(e.x - t.px, e.y - t.py); if (d > t.range) return false; if (!t.canTargetAir && e.flags && e.flags.air) return false; if (e.flags && e.flags.stealth && !t.tags.includes('detect') && !t.tags.includes('pierce')) return false; return true; });
+        if (candidates.length > 0){
+          candidates.sort((a,b)=>{
+            const score = (x)=> ((x.flags && x.flags.boss)?8:0) + ((x.flags && x.flags.air)?3:0) + ((x.flags && x.flags.caster)?2:0) + ((x.flags && x.flags.armored)?1:0);
+            const sa = score(a), sb = score(b); if (sa!==sb) return sb - sa;
+            const da = Math.hypot(a.x - t.px, a.y - t.py), db = Math.hypot(b.x - t.px, b.y - t.py); return da - db;
+          });
+          const target = candidates[0]; towerShoot(t, target); t.cooldown = 1 / t.fireRate;
+        }
+      }
+      if (t._auraExpiry && Date.now() > t._auraExpiry){ t._auraActive = null; t._auraExpiry = 0; }
+      if (t._repairExpire && Date.now() > t._repairExpire){ t._repairBuff = 0; t._repairExpire = 0; }
+    }
+
+    processProjectiles(dt);
+  }
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* -------------------------
+   Rendering
+   ------------------------- */
 function render(){
-  // clear
   ctx.clearRect(0,0,W,H);
+  const map = MAPS[game.currentMapIndex];
 
-  // draw ground tiles
-  for (let row=0; row<GRID.rows; row++){
-    for (let col=0; col<GRID.cols; col++){
-      const gx = col*GRID.tile, gy = row*GRID.tile;
-      ctx.fillStyle = (row%2===0 ^ col%2===0) ? '#486d5e' : '#3f6a5b';
-      ctx.fillRect(gx, gy, GRID.tile-2, GRID.tile-2);
-      // grid faint lines
-      ctx.strokeStyle = 'rgba(0,0,0,0.06)'; ctx.strokeRect(gx,gy,GRID.tile-2,GRID.tile-2);
+  // ground tiles
+  for (let r=0;r<GRID.rows;r++){
+    for (let c=0;c<GRID.cols;c++){
+      const x=c*GRID.tile,y=r*GRID.tile;
+      const col = map && map.bgTiles ? ((r%2 ^ c%2) ? map.bgTiles[0] : map.bgTiles[1]) : ((r%2 ^ c%2) ? '#3f6a5b' : '#486d5e');
+      ctx.fillStyle = col; ctx.fillRect(x,y,GRID.tile-2,GRID.tile-2);
     }
   }
 
-  // draw path overlay (simple horizontal path)
-  ctx.fillStyle = 'rgba(60,40,20,0.6)';
-  const py = GRID.tile*4 + 6;
-  ctx.fillRect(0, py, W, GRID.tile*2 - 12);
-  // draw waypoints path
+  // roads (draw each path)
+  if (map){
+    ctx.fillStyle = map.roadColor;
+    for (let p=0;p<map.waypoints.length;p++){
+      const path = map.waypoints[p];
+      // simple thick stroke along path
+      ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
+      for (let i=1;i<path.length;i++) ctx.lineTo(path[i].x, path[i].y);
+      ctx.lineWidth = GRID.tile - 44; ctx.strokeStyle = map.roadColor; ctx.lineCap='round'; ctx.stroke();
+    }
+  }
+
+  // path guide (thin)
   ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(spawnPoint.x+60, spawnPoint.y);
-  for (let wp of waypoints){ ctx.lineTo(wp.x, wp.y); }
-  ctx.stroke();
+  if (map){
+    for (let p=0;p<map.waypoints.length;p++){
+      const path = map.waypoints[p];
+      ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
+      for (let i=1;i<path.length;i++) ctx.lineTo(path[i].x, path[i].y);
+      ctx.stroke();
+    }
+  }
 
-  // draw towers
+  // towers
   for (let t of game.towers){
-    // shadow
-    ctx.fillStyle = 'rgba(0,0,0,0.2)'; ctx.beginPath(); ctx.ellipse(t.px+6,t.py+12,26,12,0,0,Math.PI*2); ctx.fill();
-    // body
-    ctx.fillStyle = t.color; drawRoundedRect(t.px-22,t.py-36,44,44,8,t.color);
-    // level mark
-    ctx.fillStyle = '#fff'; ctx.font='12px bold sans-serif'; ctx.fillText('Lv'+t.level, t.px-16, t.py-14);
-    // range preview (selected)
-    if (game.selectedTower === t){
-      ctx.strokeStyle = 'rgba(255,255,255,0.14)'; ctx.beginPath(); ctx.arc(t.px,t.py,t.range,0,Math.PI*2); ctx.stroke();
-    }
+    ctx.fillStyle='rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(t.px+6,t.py+12,28,12,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = t.color; ctx.fillRect(t.px-28,t.py-36,56,46);
+    ctx.fillStyle = '#fff'; ctx.font='12px sans-serif'; ctx.fillText(t.kind.toUpperCase(), t.px-20, t.py-12);
+    if (game.selectedTower === t){ ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.beginPath(); ctx.arc(t.px,t.py,t.range,0,Math.PI*2); ctx.stroke(); }
+    if (t.aura){ ctx.strokeStyle='rgba(42,157,143,0.08)'; ctx.beginPath(); ctx.arc(t.px,t.py,t.range,0,Math.PI*2); ctx.stroke(); }
+    if (t._auraActive || t._repairBuff){ ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.arc(t.px,t.py,18,0,Math.PI*2); ctx.fill(); }
   }
 
-  // draw enemies
+  // enemies
   for (let e of game.enemies){
-    // shadow
-    ctx.fillStyle='rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(e.x+6,e.y+10,e.size+8,e.size/2+6,0,0,Math.PI*2); ctx.fill();
-    // body
-    ctx.fillStyle = e.color; ctx.beginPath(); ctx.arc(e.x,e.y,e.size,0,Math.PI*2); ctx.fill();
-    // HP bar
-    const hpw = 28, hpx = e.x - hpw/2, hpy = e.y - e.size - 12;
-    ctx.fillStyle = '#333'; ctx.fillRect(hpx, hpy, hpw, 6);
-    ctx.fillStyle = '#e2564b'; ctx.fillRect(hpx, hpy, hpw * (e.hp/e.maxHP), 6);
-  }
+    ctx.fillStyle='rgba(0,0,0,0.22)'; ctx.beginPath(); ctx.ellipse(e.x+6,e.y+10,e.size+10,e.size/2+6,0,0,Math.PI*2); ctx.fill();
+    const g = ctx.createLinearGradient(e.x - e.size, e.y - e.size, e.x + e.size, e.y + e.size);
+    g.addColorStop(0, '#f5b27a'); g.addColorStop(1, '#d16a3a');
+    ctx.fillStyle = e.flags && e.flags.air ? '#bfe8ff' : g;
+    ctx.beginPath(); ctx.arc(e.x, e.y, e.size, 0, Math.PI*2); ctx.fill();
 
-  // draw projectiles
-  for (let p of game.projectiles){
-    ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.fill();
-    if (p.aoe){
-      ctx.strokeStyle = 'rgba(165,90,200,0.18)'; ctx.beginPath(); ctx.arc(p.x,p.y,44,0,Math.PI*2); ctx.stroke();
+    // stealth indicator (fainter)
+    if (e.flags && e.flags.stealth){
+      ctx.fillStyle = 'rgba(80,80,80,0.2)'; ctx.beginPath(); ctx.arc(e.x,e.y,e.size+6,0,Math.PI*2); ctx.fill();
     }
+
+    const hpw = 34, hpx = e.x - hpw/2, hpy = e.y - e.size - 12;
+    ctx.fillStyle = '#333'; ctx.fillRect(hpx, hpy, hpw, 6);
+    ctx.fillStyle = '#e2564b'; ctx.fillRect(hpx, hpy, hpw * (e.hp / e.maxHP), 6);
   }
 
-  // HUD day/night overlay
-  const nightAlpha = clamp((game.dayTime > 0.7 ? (game.dayTime - 0.7)/0.3 : (game.dayTime < 0.2 ? (0.2 - game.dayTime)/0.2 : 0)), 0, 0.6);
-  ctx.fillStyle = `rgba(6,10,28,${0.25 * nightAlpha})`;
-  ctx.fillRect(0,0,W,H);
-  // sun/moon indicator
-  const cx = 70, cy = 40;
+  // projectiles
+  for (let p of game.projectiles){
+    ctx.fillStyle = p.color || '#fff'; ctx.beginPath(); ctx.arc(p.x,p.y,6,0,Math.PI*2); ctx.fill();
+    if (p.meta.aoe){ ctx.strokeStyle='rgba(200,140,255,0.12)'; ctx.beginPath(); ctx.arc(p.x,p.y,p.meta.radius||48,0,Math.PI*2); ctx.stroke(); }
+  }
+
+  // day/night overlay
+  const nightAlpha = clamp((game.dayTime > 0.7 ? (game.dayTime - 0.7)/0.3 : (game.dayTime < 0.18 ? (0.18 - game.dayTime)/0.18 : 0)), 0, 0.6);
+  ctx.fillStyle = `rgba(5,10,25,${0.22 * nightAlpha})`; ctx.fillRect(0,0,W,H);
+  // sun/moon
+  const cx=70, cy=40;
   ctx.fillStyle = game.isNight ? '#e8f0ff' : '#fff2c4';
-  ctx.beginPath(); ctx.arc(cx + Math.cos(game.dayTime* Math.PI*2)*30, cy + Math.sin(game.dayTime* Math.PI*2)*10, 12,0,Math.PI*2); ctx.fill();
-  // day text
-  ctx.fillStyle = '#cfe8e2'; ctx.font='14px sans-serif'; ctx.fillText(game.isNight ? 'Night' : 'Day', cx+30, cy+6);
+  ctx.beginPath(); ctx.arc(cx + Math.cos(game.dayTime*Math.PI*2)*28, cy + Math.sin(game.dayTime*Math.PI*2)*8, 12,0,Math.PI*2); ctx.fill();
 }
 
 /* -------------------------
-   Input handling: build & select
+   Input: build & select (tile detection)
    ------------------------- */
-let placing = null; // 'archer' or 'mage'
-document.querySelectorAll('.towerBtn').forEach(b=>{
-  b.addEventListener('click', ()=>{ placing = b.dataset.type; document.body.style.cursor='crosshair'; });
-});
+let placing = null;
+const buildList = document.getElementById('buildList');
+for (const k in TOWER_CATALOG){
+  const def = TOWER_CATALOG[k];
+  const div = document.createElement('div'); div.className='towerBtn';
+  div.innerHTML = `<div style="width:46px;height:46px;border-radius:8px;background:${def.color};display:flex;align-items:center;justify-content:center;font-weight:800">${def.name[0]}</div>
+    <div><div style="font-weight:800">${def.name}</div><div class="mutedSmall">${def.cost} gold • ${def.canTargetAir? 'Anti-air':'Ground only'}</div></div>
+    <div style="margin-left:auto" class="mutedSmall">Cost: ${def.cost}</div>`;
+  div.onclick = ()=>{ placing = def.id; document.body.style.cursor='crosshair'; };
+  buildList.appendChild(div);
+}
 
 canvas.addEventListener('click', (ev)=>{
   const rect = canvas.getBoundingClientRect();
   const cx = (ev.clientX - rect.left) * (canvas.width / rect.width);
   const cy = (ev.clientY - rect.top) * (canvas.height / rect.height);
-
   if (placing){
-    // compute grid
     const gx = Math.floor(cx / GRID.tile), gy = Math.floor(cy / GRID.tile);
-    // check if inside map
-    if (gx>=0 && gx<GRID.cols && gy>=0 && gy<GRID.rows){
-      // Prevent building on path rows (simple rule: row 4 and 5 are path)
-      if (gy===4 || gy===5) { alert('Cannot build on the road'); placing=null; document.body.style.cursor='default'; return; }
-      // Prevent building on occupied tile
-      for (let t of game.towers) if (t.x===gx && t.y===gy) { placing=null; document.body.style.cursor='default'; return; }
-      createTower(placing, gx, gy);
-    }
-    placing=null; document.body.style.cursor='default';
-    return;
+    if (createTower(placing, gx, gy)) updateUI();
+    placing = null; document.body.style.cursor='default'; return;
   }
-  // selection: find tower at click
   let found = null;
-  for (let t of game.towers){
-    if (Math.hypot(cx - t.px, cy - t.py) < 36){ found = t; break; }
-  }
-  game.selectedTower = found;
-  refreshSelectedPanel();
+  for (let t of game.towers){ if (Math.hypot(cx - t.px, cy - t.py) < 36){ found = t; break; } }
+  game.selectedTower = found; refreshSelected();
 });
 
 /* -------------------------
-   UI buttons & updates
+   Selected panel
    ------------------------- */
-document.getElementById('upgradeBtn').onclick = ()=>{
-  if (game.selectedTower) upgradeTower(game.selectedTower);
-  refreshSelectedPanel(); updateUI();
-};
-document.getElementById('sellBtn').onclick = ()=>{
-  if (game.selectedTower) sellTower(game.selectedTower);
-  refreshSelectedPanel(); updateUI();
-};
-document.getElementById('startWave').onclick = ()=>spawnWave();
-
-document.getElementById('assignMine').onclick = ()=>{
-  if (game.assigned.mine + game.assigned.repair < game.villagers) { game.assigned.mine++; updateUI(); } else alert('No free villagers');
-};
-document.getElementById('unassignMine').onclick = ()=>{
-  if (game.assigned.mine>0) { game.assigned.mine--; updateUI(); }
-};
-document.getElementById('assignRepair').onclick = ()=>{
-  if (game.assigned.mine + game.assigned.repair < game.villagers) { game.assigned.repair++; updateUI(); } else alert('No free villagers');
-};
-document.getElementById('unassignRepair').onclick = ()=>{
-  if (game.assigned.repair>0) { game.assigned.repair--; updateUI(); }
-};
-document.getElementById('craftPotion').onclick = ()=>{
-  if (game.iron >= 5){ game.iron -= 5; game.potions++; updateUI(); } else alert('Need 5 Iron');
-};
-document.getElementById('fastForward').onclick = (e)=>{
-  game.timeScale = game.timeScale === 1 ? 1.8 : 1;
-  e.target.textContent = game.timeScale === 1 ? 'x1 Speed' : 'x2 Speed';
-};
+function refreshSelected(){
+  const p = document.getElementById('selectedPanel');
+  if (!game.selectedTower){ p.innerHTML = 'No tower selected'; return; }
+  const t = game.selectedTower;
+  let html = `<div style="font-weight:800">${t.kind.toUpperCase()} (Lv ${t.level})</div>`;
+  html += `<div class="mutedSmall">Dmg: ${Math.round(t.damage)} • Rate: ${t.fireRate.toFixed(2)} • Range: ${Math.round(t.range)}</div>`;
+  html += `<div style="margin-top:8px">Upgrades:</div><div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">`;
+  for (let i=0;i<t.upgrades.length;i++){ const u = t.upgrades[i]; html += `<button class="small" onclick="uiUpgrade('${t.id}',${i})">${u.name} (${Math.floor(u.cost)})</button>`; }
+  html += `</div><div style="margin-top:8px" class="smallRow"><div>Sell</div><div><button class="small" onclick="uiSell('${t.id}')">Sell</button></div></div>`;
+  p.innerHTML = html;
+}
+window.uiUpgrade = (tid, idx)=>{ const t = game.towers.find(x=>x.id===tid); if (!t) return; upgradeTower(t, idx); updateUI(); refreshSelected(); };
+window.uiSell = (tid)=>{ const t = game.towers.find(x=>x.id===tid); if (!t) return; sellTower(t); };
 
 /* -------------------------
-   UI helpers
+   Jobs & crafting
    ------------------------- */
+function assign(job){ const assignedSum = Object.values(game.assigned).reduce((a,b)=>a+b,0); if (assignedSum >= game.villagers) return; game.assigned[job]++; updateUI(); }
+function unassign(job){ if (game.assigned[job]>0) game.assigned[job]--; updateUI(); }
+document.getElementById('assignMiner').onclick = ()=>assign('miners'); document.getElementById('unassignMiner').onclick = ()=>unassign('miners');
+document.getElementById('assignRepair').onclick = ()=>assign('repairers'); document.getElementById('unassignRepair').onclick = ()=>unassign('repairers');
+document.getElementById('assignResearch').onclick = ()=>assign('researchers'); document.getElementById('unassignResearch').onclick = ()=>unassign('researchers');
+document.getElementById('assignCraft').onclick = ()=>assign('crafters'); document.getElementById('unassignCraft').onclick = ()=>unassign('crafters');
+
+setInterval(()=>{
+  const miners = game.assigned.miners; if (miners>0) game.gold += miners * (4 + Math.floor(game.waveIndex*0.2));
+  const crafters = game.assigned.crafters; if (crafters>0 && game.iron >= 4){ const m = Math.min(crafters, Math.floor(game.iron/4)); game.iron -= m*4; game.bolts += m; }
+  const repairers = game.assigned.repairers; if (repairers>0 && game.towers.length>0){ for (let i=0;i<repairers;i++){ const t = game.towers[Math.floor(Math.random()*game.towers.length)]; t._repairBuff = (t._repairBuff || 0) + 6; t._repairExpire = Date.now() + 9000; } }
+  const researchers = game.assigned.researchers; if (researchers>0) game.gold += researchers * 1;
+  updateUI();
+}, 5000);
+
+document.getElementById('craftPotion').onclick = ()=>{ if (game.iron >=5){ game.iron -=5; game.potions++; updateUI(); alert('Crafted a damage potion'); } else alert('Need 5 iron'); };
+document.getElementById('craftBolt').onclick = ()=>{ if (game.iron >=8){ game.iron -=8; game.bolts++; updateUI(); alert('Crafted a ballista bolt'); } else alert('Need 8 iron'); };
+
+/* -------------------------
+   Controls
+   ------------------------- */
+document.getElementById('startWave').onclick = ()=>{ spawnWave(); };
+document.getElementById('pauseBtn').onclick = (e)=>{ game.paused = !game.paused; e.target.textContent = game.paused ? 'Resume' : 'Pause'; };
+document.getElementById('speedBtn').onclick = (e)=>{ game.timeScale = game.timeScale === 1 ? 1.8 : 1; e.target.textContent = game.timeScale === 1 ? 'x1' : 'x2'; };
+document.getElementById('saveBtn').onclick = ()=>{ localStorage.setItem('td_save', JSON.stringify(gameSave())); alert('Saved'); };
+document.getElementById('loadBtn').onclick = ()=>{ const s = localStorage.getItem('td_save'); if (!s) return alert('No save found'); loadSave(JSON.parse(s)); alert('Loaded'); };
+document.getElementById('resetBtn').onclick = ()=>{ if (confirm('Reset progress?')) location.reload(); };
+
+/* -------------------------
+   Save/Load (Rough draft extended)
+   ------------------------- */
+function gameSave(){
+  return {
+    gold:game.gold, iron:game.iron, potions:game.potions, bolts:game.bolts,
+    villagers:game.villagers, assigned:game.assigned,
+    waveIndex:game.waveIndex, towers: game.towers.map(t=>({kind:t.kind,gx:t.gx,gy:t.gy,level:t.level,damage:t.damage,range:t.range,fireRate:t.fireRate,upgrades:t.upgrades.map(u=>u.name)})),
+    analytics: game.analytics, currentMapIndex: game.currentMapIndex
+  };
+}
+function loadSave(obj){
+  game.gold = obj.gold; game.iron = obj.iron; game.potions = obj.potions; game.bolts = obj.bolts;
+  game.villagers = obj.villagers; game.assigned = obj.assigned || game.assigned;
+  game.waveIndex = obj.waveIndex || 0; document.getElementById('wave').textContent = game.waveIndex;
+  game.currentMapIndex = obj.currentMapIndex || 0;
+  // rebuild towers
+  game.towers = [];
+  if (obj.towers) for (let td of obj.towers){
+    const t = createTower(td.kind, td.gx, td.gy);
+    if (t){ t.level = td.level || t.level; t.damage = td.damage || t.damage; t.range = td.range || t.range; t.fireRate = td.fireRate || t.fireRate; if (td.upgrades && td.upgrades.length>0) t.upgrades = t.upgrades.filter(u => !td.upgrades.includes(u.name)); }
+  }
+  game.analytics = obj.analytics || game.analytics;
+  updateUI(); refreshSelected(); renderMapsList();
+}
+
+/* -------------------------
+   UI helpers: wave preview & update
+   ------------------------- */
+function updateWavePreview(){
+  const map = MAPS[game.currentMapIndex];
+  if (!game.inWave){
+    const next = map.waves[game.waveIndex] || null;
+    if (!next){ document.getElementById('wavePreview').textContent = 'No more waves'; return; }
+    let s = `Next wave (${game.waveIndex+1}): `;
+    for (let g of next) s += `${g.c}x ${g.t.name}, `;
+    document.getElementById('wavePreview').textContent = s.slice(0,-2);
+  } else { document.getElementById('wavePreview').textContent = `Wave ${game.waveIndex} in progress`; }
+}
 function updateUI(){
   document.getElementById('gold').textContent = Math.floor(game.gold);
-  document.getElementById('villagers').textContent = game.villagers + ' (free:' + (game.villagers - (game.assigned.mine + game.assigned.repair)) + ')';
   document.getElementById('iron').textContent = game.iron;
   document.getElementById('potions').textContent = game.potions;
-}
-function refreshSelectedPanel(){
-  const sp = document.getElementById('selectedPanel');
-  const ub = document.getElementById('upgradeBtn'); const sb = document.getElementById('sellBtn');
-  if (!game.selectedTower){ sp.firstElementChild.textContent='No tower selected'; ub.disabled=true; sb.disabled=true; }
-  else {
-    sp.firstElementChild.innerHTML = `<div style="font-weight:700">${TOWER_TYPES[game.selectedTower.kind].name} (Lv${game.selectedTower.level})</div>
-      <div class="muted">Dmg: ${Math.round(game.selectedTower.damage)} Rate: ${game.selectedTower.fireRate.toFixed(2)} Range: ${Math.round(game.selectedTower.range)}</div>`;
-    ub.disabled=false; sb.disabled=false;
-  }
+  document.getElementById('villagers').textContent = game.villagers;
+  document.getElementById('minersAssigned').textContent = game.assigned.miners;
+  document.getElementById('repairAssigned').textContent = game.assigned.repairers;
+  document.getElementById('researchAssigned').textContent = game.assigned.researchers;
+  document.getElementById('craftAssigned').textContent = game.assigned.crafters;
+  document.getElementById('wave').textContent = game.waveIndex;
+  updateWavePreview();
+  renderMapsList();
 }
 
 /* -------------------------
-   Init & start
+   Map selection UI (Will change later)
+   ------------------------- */
+const mapsListEl = document.getElementById('mapsList');
+function renderMapsList(){
+  mapsListEl.innerHTML = '';
+  MAPS.forEach((m,idx)=>{
+    const b = document.createElement('div'); b.className = 'mapBtn' + (idx===game.currentMapIndex ? ' active' : '');
+    b.textContent = m.name; b.title = m.desc;
+    b.onclick = ()=>{ if (game.inWave){ if (!confirm('Changing map will abort the current wave. Continue?')) return; resetForMap(idx); } else resetForMap(idx); };
+    mapsListEl.appendChild(b);
+    if (idx===game.currentMapIndex) document.getElementById('mapDesc').textContent = m.desc;
+  });
+}
+function resetForMap(idx){
+  game.currentMapIndex = idx; game.waveIndex = 0; game.inWave = false;
+  // clear enemies/projectiles/towers optionally (we keep towers to allow transport)
+  // For simplicity, don't delete towers — but repositioning or clearing could be implemented
+  game.enemies.length = 0; game.projectiles.length = 0; if (game.runningSpawner){ clearInterval(game.runningSpawner); game.runningSpawner=null; }
+  updateUI(); refreshSelected();
+}
+renderMapsList();
+
+/* -------------------------
+   Helpers: path and towers
+   ------------------------- */
+function getTowerAt(gx,gy){ return game.towers.find(t=>t.gx===gx && t.gy===gy); }
+
+/* -------------------------
+   Expose debug for console
+   ------------------------- */
+window._game = game;
+window.spawnWave = spawnWave;
+window.createTower = createTower;
+
+/* -------------------------
+   Start initial UI render (First three maps)
    ------------------------- */
 updateUI();
-refreshSelectedPanel();
+refreshSelected();
+updateWavePreview();
 
-// start background update loop already via requestAnimationFrame
-
-/* -------------------------
-   Resize handling (optional)
-   ------------------------- */
-window.addEventListener('resize', ()=>{ resizeCanvas(); });
-
+/* ------------------------ 
+    Will change formatting later , this is for test
+ Created by CrypticTM 2024-05-15 , rewritten and reconfigured 2025-08-05
+   ------------------------ * / 
 </script>
 </body>
 </html>
