@@ -618,7 +618,10 @@ document.getElementById('autoModeToggle').addEventListener('change', function() 
 document.getElementById('autoModeDelay').addEventListener('change', function() {
   autoMode.delay = Math.max(3, Math.min(60, parseInt(this.value)));
 });
-document.getElementById('startWave').addEventListener('click', cancelAutoWaveTimer);
+document.getElementById('startWave').addEventListener('click', () => {
+  cancelAutoWaveTimer();
+  spawnWave();
+});
 
 /* -------------------------
    Kill & drops
