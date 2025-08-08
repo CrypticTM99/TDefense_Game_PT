@@ -9,7 +9,7 @@
     --bg:#071217; --panel:#0f1f24; --accent:#f2c94c; --muted:#bcd6da;
     --ui-bg: rgba(255,255,255,0.03);
   }
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(#061217,#071821);color:var(--muted);display:flex;align-items:center;justify-content:center;padding:14px;}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(#061217,#071821);color:var(--muted);display:flex;align-items:center;justify-content:center;}
   #wrap{ width:1200px; max-width:calc(100vw - 28px); display:grid; grid-template-columns: 760px 420px; gap:12px; }
   canvas{ width:100%; height:700px; border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,.6); background: linear-gradient(#8ab6e0,#2a9d8f); display:block; }
   .panel{ background:var(--panel); padding:12px; border-radius:10px; min-height:700px; box-shadow: inset 0 1px rgba(255,255,255,0.02); overflow:auto;}
@@ -66,10 +66,10 @@
 
     <div class="muted">Jobs</div>
     <div class="slot">
-      <div class="smallRow"><div>Miners</div><div><button class="small" id="assignMiner">+</button><button class="small" id="unassignMiner">−</button><span id="minersAssigned" style="margin-left:8px">0</span></div></div>
-      <div class="smallRow"><div>Repairers</div><div><button class="small" id="assignRepair">+</button><button class="small" id="unassignRepair">−</button><span id="repairAssigned" style="margin-left:8px">0</span></div></div>
-      <div class="smallRow"><div>Researchers</div><div><button class="small" id="assignResearch">+</button><button class="small" id="unassignResearch">−</button><span id="researchAssigned" style="margin-left:8px">0</span></div></div>
-      <div class="smallRow"><div>Crafters</div><div><button class="small" id="assignCraft">+</button><button class="small" id="unassignCraft">−</button><span id="craftAssigned" style="margin-left:8px">0</span></div></div>
+      <div class="smallRow"><div>Miners</div><div><button class="small" id="assignMiner">+</button><button class="small" id="unassignMiner">−</button><span id="minersAssigned" style="margin-left:8px"></span></div></div>
+      <div class="smallRow"><div>Repairers</div><div><button class="small" id="assignRepair">+</button><button class="small" id="unassignRepair">−</button><span id="repairAssigned" style="margin-left:8px"></span></div></div>
+      <div class="smallRow"><div>Researchers</div><div><button class="small" id="assignResearch">+</button><button class="small" id="unassignResearch">−</button><span id="researchAssigned" style="margin-left:8px"></span></div></div>
+      <div class="smallRow"><div>Crafters</div><div><button class="small" id="assignCraft">+</button><button class="small" id="unassignCraft">−</button><span id="craftAssigned" style="margin-left:8px"></span></div></div>
     </div>
 
     <div class="muted">Crafting</div>
@@ -89,19 +89,23 @@
       <div style="display:flex;gap:8px;"><button class="small" id="startWave">Start Next Wave</button><button class="small" id="pauseBtn">Pause</button><button class="small" id="speedBtn">x1</button></div>
       <div style="display:flex;gap:8px;margin-top:8px;"><button class="small" id="saveBtn">Save</button><button class="small" id="loadBtn">Load</button><button class="small" id="resetBtn">Reset</button></div>
     </div>
-<div class="muted">Auto Mode</div>
-<div class="slot">
-  <div class="smallRow">
-    <label for="autoModeToggle" style="display:flex;align-items:center;gap:6px;">
-      <input type="checkbox" id="autoModeToggle" style="vertical-align:middle;">
-      Enable Auto Mode
-    </label>
-    <div>
-      Delay: <input type="number" min="3" max="60" value="10" id="autoModeDelay" style="width:48px;">s
+
+    <!-- NEW: Auto Mode UI -->
+    <div class="muted">Auto Mode</div>
+    <div class="slot">
+      <div class="smallRow">
+        <label for="autoModeToggle" style="display:flex;align-items:center;gap:6px;">
+          <input type="checkbox" id="autoModeToggle" style="vertical-align:middle;">
+          Enable Auto Mode
+        </label>
+        <div>
+          Delay: <input type="number" min="3" max="60" value="10" id="autoModeDelay" style="width:48px;">s
+        </div>
+      </div>
+      <div id="autoModeStatus" class="mutedSmall"></div>
     </div>
-  </div>
-  <div id="autoModeStatus" class="mutedSmall"></div>
-</div>
+    <!-- END: Auto Mode UI -->
+
     <div class="muted">Wave Preview</div>
     <div id="wavePreview" class="slot mutedSmall">Ready</div>
 
@@ -150,8 +154,6 @@ const ENEMIES = {
   troll:  { id:'troll', name:'Troll', hp:500, speed:18, gold:120, iron:8, size:34, flags:{air:false, regen:true} },
   wyvern: { id:'wyvern', name:'Wyvern', hp:90, speed:110, gold:30, iron:0, size:18, flags:{air:true} },
   necro:  { id:'necro', name:'Necromancer', hp:150, speed:34, gold:40, iron:2, size:20, flags:{air:false, caster:true} },
-
-  // new types
   assassin:{ id:'assassin', name:'Assassin', hp:80, speed:160, gold:45, iron:0, size:12, flags:{stealth:true, air:false} },
   drake:   { id:'drake', name:'Drake', hp:340, speed:48, gold:140, iron:6, size:30, flags:{armored:true, air:true} },
   wyrm_boss:{ id:'wyrm_boss', name:'Wyrm Boss', hp:1800, speed:28, gold:800, iron:40, size:56, flags:{boss:true, regen:true, armored:true} }
@@ -181,9 +183,8 @@ const MAPS = [
     roadColor:'rgba(60,40,20,0.6)',
     spawnPoints:[ {x:-80,y:GRID.tile*4+30} ],
     goals:[ {x:GRID.tile*GRID.cols + 80, y: GRID.tile*5 + 20} ],
-    // single-path waypoints
     waypoints:[
-      [{x: -80, y: GRID.tile*4 + 30},{x: 220, y: GRID.tile*4 + 30},{x: 420, y: GRID.tile*6 + 20},{x: 780, y: GRID.tile*6 + 20},{x: 1100, y: GRID.tile*4 + 20},{x: GRID.tile*GRID.cols + 60, y: GRID.tile*4 + 20}]
+      [{x: -80, y: GRID.tile*4 + 30},{x: 220, y: GRID.tile*4 + 30},{x: 420, y: GRID.tile*6 + 20},{x: 780, y: GRID.tile*6 + 20},{x: 1100, y: GRID.tile*4 + 20},{x: GRID.tile*GRID.cols + 60, y: GRID.tile*5 + 20}]
     ],
     waves:[
       [{t:ENEMIES.goblin,c:8}],
@@ -195,7 +196,7 @@ const MAPS = [
       [{t:ENEMIES.necro,c:1},{t:ENEMIES.goblin,c:12}],
       [{t:ENEMIES.troll,c:1}],
       [{t:ENEMIES.goblin,c:24},{t:ENEMIES.orc,c:8}],
-      [{t:ENEMIES.wyrm_boss,c:1}] // boss on map 1 wave 10
+      [{t:ENEMIES.wyrm_boss,c:1}]
     ]
   },
 
@@ -205,7 +206,6 @@ const MAPS = [
     roadColor:'rgba(200,200,255,0.5)',
     spawnPoints:[ {x:-80,y:GRID.tile*2+20},{x:-80,y:GRID.tile*7+20} ],
     goals:[ {x:GRID.tile*GRID.cols + 80, y: GRID.tile*5 + 20} ],
-    // two branches (index 0 = left-entry path, index 1 = right-entry path)
     waypoints:[
       [{x:-80,y:GRID.tile*2+20},{x:200,y:GRID.tile*2+20},{x:420,y:GRID.tile*3+20},{x:700,y:GRID.tile*3+20},{x:1000,y:GRID.tile*4+20},{x:GRID.tile*GRID.cols+30,y:GRID.tile*5+20}],
       [{x:-80,y:GRID.tile*7+20},{x:220,y:GRID.tile*7+20},{x:420,y:GRID.tile*6+20},{x:700,y:GRID.tile*6+20},{x:980,y:GRID.tile*5+40},{x:GRID.tile*GRID.cols+30,y:GRID.tile*5+20}]
@@ -242,6 +242,151 @@ const MAPS = [
       [{t:ENEMIES.troll,c:2}],
       [{t:ENEMIES.wyvern,c:8},{t:ENEMIES.assassin,c:4}],
       [{t:ENEMIES.drake,c:4}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  },
+
+  // Map 4
+  {
+    id:'marsh', name:'Misty Marsh', desc:'Slower enemy movement, but more paths.',
+    bgTiles: ['#486a5b','#415e50'],
+    roadColor:'rgba(60,90,60,0.6)',
+    spawnPoints:[ {x:-80,y:GRID.tile*3+20}, {x:-80,y:GRID.tile*6+20} ],
+    goals:[ {x:GRID.tile*GRID.cols + 80, y: GRID.tile*4 + 60} ],
+    waypoints:[
+      [{x:-80,y:GRID.tile*3+20},{x:220,y:GRID.tile*3+20},{x:520,y:GRID.tile*4+20},{x:920,y:GRID.tile*5+20},{x:GRID.tile*GRID.cols+80,y:GRID.tile*4+60}],
+      [{x:-80,y:GRID.tile*6+20},{x:180,y:GRID.tile*7+20},{x:480,y:GRID.tile*5+20},{x:920,y:GRID.tile*5+20},{x:GRID.tile*GRID.cols+80,y:GRID.tile*4+60}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.goblin,c:16},{t:ENEMIES.orc,c:2}],
+      [{t:ENEMIES.shield,c:3},{t:ENEMIES.goblin,c:14}],
+      [{t:ENEMIES.wyvern,c:3},{t:ENEMIES.orc,c:6}],
+      [{t:ENEMIES.necro,c:2},{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.troll,c:1}],
+      [{t:ENEMIES.orc,c:12},{t:ENEMIES.shield,c:6}],
+      [{t:ENEMIES.necro,c:3},{t:ENEMIES.drake,c:1}],
+      [{t:ENEMIES.drake,c:3},{t:ENEMIES.orc,c:8}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  },
+
+  // Map 5
+  {
+    id:'lava', name:'Molten River', desc:'A scorching river splits the map. Fast and armored units appear.',
+    bgTiles: ['#a14d2e','#d2691e'],
+    roadColor:'rgba(255,80,0,0.4)',
+    spawnPoints:[ {x:-80, y:GRID.tile*2+30}, {x:-80, y:GRID.tile*7+30} ],
+    goals:[ {x:GRID.tile*GRID.cols+80, y:GRID.tile*4+80} ],
+    waypoints:[
+      [{x:-80, y:GRID.tile*2+30}, {x:340, y:GRID.tile*2+30}, {x:660, y:GRID.tile*4+20}, {x:GRID.tile*GRID.cols+80, y:GRID.tile*4+80}],
+      [{x:-80, y:GRID.tile*7+30}, {x:340, y:GRID.tile*7+30}, {x:660, y:GRID.tile*5+60}, {x:GRID.tile*GRID.cols+80, y:GRID.tile*4+80}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:12}],
+      [{t:ENEMIES.orc,c:6},{t:ENEMIES.goblin,c:8}],
+      [{t:ENEMIES.shield,c:4},{t:ENEMIES.orc,c:6}],
+      [{t:ENEMIES.assassin,c:3},{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.drake,c:1},{t:ENEMIES.necro,c:2}],
+      [{t:ENEMIES.troll,c:1}],
+      [{t:ENEMIES.drake,c:2},{t:ENEMIES.orc,c:10}],
+      [{t:ENEMIES.wyvern,c:8}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  },
+
+  // Map 6
+  {
+    id:'forest', name:'Elderwood', desc:'Winding forest with many turns. Good for AoE towers.',
+    bgTiles: ['#245c34','#3c734c'],
+    roadColor:'rgba(44,130,62,0.5)',
+    spawnPoints:[ {x:-80, y:GRID.tile*5+10} ],
+    goals:[ {x:GRID.tile*GRID.cols+80, y:GRID.tile*2+60} ],
+    waypoints:[
+      [{x:-80, y:GRID.tile*5+10},{x:180, y:GRID.tile*5+10},{x:380, y:GRID.tile*7+20},{x:620, y:GRID.tile*4+40},{x:920, y:GRID.tile*2+60},{x:GRID.tile*GRID.cols+80, y:GRID.tile*2+60}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.goblin,c:10},{t:ENEMIES.orc,c:4}],
+      [{t:ENEMIES.shield,c:3},{t:ENEMIES.goblin,c:8}],
+      [{t:ENEMIES.necro,c:2}],
+      [{t:ENEMIES.troll,c:1}],
+      [{t:ENEMIES.drake,c:2}],
+      [{t:ENEMIES.assassin,c:5}],
+      [{t:ENEMIES.orc,c:8},{t:ENEMIES.shield,c:4}],
+      [{t:ENEMIES.drake,c:3},{t:ENEMIES.necro,c:2}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  },
+
+  // Map 7
+  {
+    id:'desert', name:'Shifting Sands', desc:'Open desert, longer straightaways, plenty of space for towers.',
+    bgTiles: ['#d6c68a','#c2b370'],
+    roadColor:'rgba(230,200,80,0.4)',
+    spawnPoints:[ {x:-80, y:GRID.tile*5+90} ],
+    goals:[ {x:GRID.tile*GRID.cols+80, y:GRID.tile*2+40} ],
+    waypoints:[
+      [{x:-80, y:GRID.tile*5+90},{x:220, y:GRID.tile*6+90},{x:520, y:GRID.tile*4+60},{x:920, y:GRID.tile*2+40},{x:GRID.tile*GRID.cols+80, y:GRID.tile*2+40}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:16}],
+      [{t:ENEMIES.orc,c:8}],
+      [{t:ENEMIES.shield,c:3},{t:ENEMIES.wyvern,c:4}],
+      [{t:ENEMIES.assassin,c:3},{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.wyvern,c:8}],
+      [{t:ENEMIES.drake,c:2}],
+      [{t:ENEMIES.troll,c:2}],
+      [{t:ENEMIES.drake,c:4}],
+      [{t:ENEMIES.necro,c:2},{t:ENEMIES.shield,c:4}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  },
+
+  // Map 8
+  {
+    id:'mountain', name:'Ironcrag Peaks', desc:'High-altitude map, fewer but tougher enemies.',
+    bgTiles: ['#b1b7c2','#7c8696'],
+    roadColor:'rgba(130,130,170,0.38)',
+    spawnPoints:[ {x:-80, y:GRID.tile*3+10} ],
+    goals:[ {x:GRID.tile*GRID.cols+80, y:GRID.tile*8+60} ],
+    waypoints:[
+      [{x:-80, y:GRID.tile*3+10},{x:220, y:GRID.tile*3+10},{x:600, y:GRID.tile*8+60},{x:GRID.tile*GRID.cols+80, y:GRID.tile*8+60}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.orc,c:8}],
+      [{t:ENEMIES.shield,c:6}],
+      [{t:ENEMIES.troll,c:1}],
+      [{t:ENEMIES.orc,c:10},{t:ENEMIES.shield,c:6}],
+      [{t:ENEMIES.drake,c:2}],
+      [{t:ENEMIES.wyvern,c:6}],
+      [{t:ENEMIES.troll,c:2}],
+      [{t:ENEMIES.necro,c:2},{t:ENEMIES.drake,c:2}],
+      [{t:ENEMIES.wyrm_boss,c:1}]
+    ]
+  },
+
+  // Map 9
+  {
+    id:'city', name:'Ruins of Eldergate', desc:'Urban ruins, tight quarters, split paths near the end.',
+    bgTiles: ['#646464','#484848'],
+    roadColor:'rgba(180,180,180,0.25)',
+    spawnPoints:[ {x:-80, y:GRID.tile*2+30} ],
+    goals:[ {x:GRID.tile*GRID.cols+80, y:GRID.tile*8+80} ],
+    waypoints:[
+      [{x:-80, y:GRID.tile*2+30},{x:220, y:GRID.tile*2+30},{x:620, y:GRID.tile*5+40},{x:920, y:GRID.tile*8+80},{x:GRID.tile*GRID.cols+80, y:GRID.tile*8+80}]
+    ],
+    waves:[
+      [{t:ENEMIES.goblin,c:8}],
+      [{t:ENEMIES.orc,c:6}],
+      [{t:ENEMIES.assassin,c:4},{t:ENEMIES.goblin,c:10}],
+      [{t:ENEMIES.necro,c:2}],
+      [{t:ENEMIES.shield,c:3},{t:ENEMIES.orc,c:8}],
+      [{t:ENEMIES.troll,c:1}],
+      [{t:ENEMIES.drake,c:2}],
+      [{t:ENEMIES.wyvern,c:5},{t:ENEMIES.shield,c:2}],
+      [{t:ENEMIES.drake,c:2},{t:ENEMIES.troll,c:1}],
       [{t:ENEMIES.wyrm_boss,c:1}]
     ]
   }
@@ -284,7 +429,7 @@ function despawnEnemy(e){
   const i = game.enemies.indexOf(e); if (i!==-1) game.enemies.splice(i,1);
   game.pools.enemies.push(e);
 }
-function spawnProj(x,y,target,damage,color,meta={}){ let p = game.pools.projs.pop() || {}; p.x=x; p.y=y; p.target=target; p.damage=damage; p.color=color; p.meta=meta; p.speed = meta.speed || 420; p.alive=true; game.projectiles.push(p); return p; }
+function spawnProj(x,y,target,damage,color,meta={}){ let p = game.pools.projs.pop() || {}; p.x=x; p.y=y; p.target=target; p.damage=damage; p.color=color; p.meta=meta; p.speed = meta.speed || 420; p.alive=true; game.projectiles.push(p); return p;}
 function despawnProj(p){ p.alive = false; const i = game.projectiles.indexOf(p); if (i!==-1) game.projectiles.splice(i,1); game.pools.projs.push(p); }
 
 /* -------------------------
@@ -294,7 +439,6 @@ function createTower(kind, gx, gy){
   const def = TOWER_CATALOG[kind];
   if (!def) return null;
   if (game.gold < def.cost){ alert('Not enough gold'); return null; }
-  // do not build on road: detect if tile is near any map waypoint line
   if (isOnRoad(gx,gy)) { alert('Cannot build on the road'); return null; }
   for (let t of game.towers) if (t.gx===gx && t.gy===gy) { alert('Tile occupied'); return null; }
   game.gold -= def.cost;
@@ -308,7 +452,6 @@ function createTower(kind, gx, gy){
   game.towers.push(t); updateUI(); refreshSelected(); return t;
 }
 function isOnRoad(gx,gy){
-  // simple check: if tile center is within 36px of any waypoint segment
   const map = MAPS[game.currentMapIndex]; if (!map) return false;
   const px = gx*GRID.tile + GRID.tile/2, py = gy*GRID.tile + GRID.tile/2;
   for (let path of map.waypoints){
@@ -330,7 +473,6 @@ function pointToSegmentDistance(px,py,x1,y1,x2,y2){
 }
 function generateUpgradesFor(id){
   const base = TOWER_CATALOG[id];
-  // base upgrades + specialization paths (two branches)
   const common = [
     { name:'Mk I — Damage', cost: Math.floor(base.cost*0.6), apply: (t)=>{ t.damage *= 1.2; } },
     { name:'Mk I — Speed', cost: Math.floor(base.cost*0.7), apply: (t)=>{ t.fireRate *= 1.18; } },
@@ -384,13 +526,11 @@ function towerShoot(t, target){
   if (t.tags.includes('armorpierce') && target.flags && target.flags.armored) dmg *= 1.6;
   if (t.tags.includes('pierce')) dmg *= 1.12;
   if (t.tags.includes('multishot')){
-    // spawn 3 projectiles to nearby enemies
     const nearby = game.enemies.filter(e=>Math.hypot(e.x-t.px,e.y-t.py) <= t.range).slice(0,3);
     for (let e of nearby) spawnProj(t.px,t.py,e,dmg,'#fff',{aoe:false,speed:520});
     return;
   }
   if (t.tags.includes('burst')){
-    // burst: 3 quick shots
     for (let i=0;i<3;i++) setTimeout(()=>{ if (target && target.alive) spawnProj(t.px,t.py,target,dmg,'#d198ff',{aoe:t.aoe,speed:420}); }, i*120);
     return;
   }
@@ -414,7 +554,6 @@ function spawnWave(){
   const pattern = map.waves[game.waveIndex - 1];
   let groupIndex = 0, countIndex = 0;
   const intervalMs = 700;
-  // choose which spawn to use if multiple: randomize and sometimes split
   game.runningSpawner = setInterval(()=>{
     if (game.paused) return;
     if (groupIndex >= pattern.length){
@@ -423,13 +562,12 @@ function spawnWave(){
         game.analytics.bestWave = Math.max(game.analytics.bestWave, game.waveIndex);
         document.getElementById('wavePreview').textContent = 'Wave ' + game.waveIndex + ' cleared!';
         updateUI();
+        onWaveCleared(); // <- for auto mode
       }
       return;
     }
     const grp = pattern[groupIndex];
     if (countIndex < grp.c){
-      // randomization: if map has multiple spawnPoints, use one randomly;
-      // for maps with multiple waypoint branches, randomly choose a branch index
       const spawn = map.spawnPoints[Math.floor(Math.random()*map.spawnPoints.length)];
       const pathIndex = map.waypoints.length>1 ? Math.floor(Math.random()*map.waypoints.length) : 0;
       spawnEnemy(grp.t, spawn, pathIndex);
@@ -438,6 +576,49 @@ function spawnWave(){
     updateWavePreview();
   }, intervalMs / game.timeScale);
 }
+
+/* -------------------------
+   Auto Mode logic
+   ------------------------- */
+let autoMode = { enabled: false, delay: 10, timer: null, countdown: null };
+
+function onWaveCleared() {
+  if (autoMode.enabled && game.waveIndex < MAPS[game.currentMapIndex].waves.length) {
+    startAutoWaveTimer();
+  }
+}
+function startAutoWaveTimer() {
+  clearTimeout(autoMode.timer);
+  let countdown = autoMode.delay;
+  document.getElementById('autoModeStatus').textContent = `Next wave in ${countdown}s`;
+  autoMode.countdown = setInterval(() => {
+    countdown--;
+    document.getElementById('autoModeStatus').textContent = `Next wave in ${countdown}s`;
+    if (countdown <= 0) {
+      clearInterval(autoMode.countdown);
+      document.getElementById('autoModeStatus').textContent = '';
+      spawnWave();
+    }
+  }, 1000);
+  autoMode.timer = setTimeout(() => {
+    clearInterval(autoMode.countdown);
+    document.getElementById('autoModeStatus').textContent = '';
+    spawnWave();
+  }, autoMode.delay * 1000);
+}
+function cancelAutoWaveTimer() {
+  clearTimeout(autoMode.timer);
+  clearInterval(autoMode.countdown);
+  document.getElementById('autoModeStatus').textContent = '';
+}
+document.getElementById('autoModeToggle').addEventListener('change', function() {
+  autoMode.enabled = this.checked;
+  if (!autoMode.enabled) cancelAutoWaveTimer();
+});
+document.getElementById('autoModeDelay').addEventListener('change', function() {
+  autoMode.delay = Math.max(3, Math.min(60, parseInt(this.value)));
+});
+document.getElementById('startWave').addEventListener('click', cancelAutoWaveTimer);
 
 /* -------------------------
    Kill & drops
@@ -499,7 +680,6 @@ function loop(now){
     for (let e of game.enemies.slice()){
       const wp = getWaypointFor(e, e.wayIndex);
       if (!wp){
-        // reached end -> damage gold/villagers and despawn
         game.gold = Math.max(0, game.gold - Math.floor(e.maxHP/30));
         game.villagers = Math.max(0, game.villagers - (e.flags && e.flags.boss ? 3 : 1));
         despawnEnemy(e); updateUI(); continue;
@@ -513,7 +693,7 @@ function loop(now){
       if (t.cooldown > 0) t.cooldown -= dt;
       if (t.aura){ for (let ot of game.towers){ const d = Math.hypot(ot.px - t.px, ot.py - t.py); if (ot !== t && d <= t.range){ ot._auraActive = t.aura; ot._auraExpiry = Date.now() + 500; } } }
       if (t.cooldown <= 0 && (!t.aura)){
-        let candidates = game.enemies.filter(e => { const d = Math.hypot(e.x - t.px, e.y - t.py); if (d > t.range) return false; if (!t.canTargetAir && e.flags && e.flags.air) return false; if (e.flags && e.flags.stealth && !t.tags.includes('detect') && !t.tags.includes('pierce')) return false; return true; });
+        let candidates = game.enemies.filter(e => { const d = Math.hypot(e.x - t.px, e.y - t.py); if (d > t.range) return false; if (!t.canTargetAir && e.flags && e.flags.air) return false; if (e.flags && e.flags.stealth && !t.tags.includes('detector')) return false; return true; });
         if (candidates.length > 0){
           candidates.sort((a,b)=>{
             const score = (x)=> ((x.flags && x.flags.boss)?8:0) + ((x.flags && x.flags.air)?3:0) + ((x.flags && x.flags.caster)?2:0) + ((x.flags && x.flags.armored)?1:0);
@@ -686,7 +866,6 @@ document.getElementById('craftBolt').onclick = ()=>{ if (game.iron >=8){ game.ir
 /* -------------------------
    Controls
    ------------------------- */
-document.getElementById('startWave').onclick = ()=>{ spawnWave(); };
 document.getElementById('pauseBtn').onclick = (e)=>{ game.paused = !game.paused; e.target.textContent = game.paused ? 'Resume' : 'Pause'; };
 document.getElementById('speedBtn').onclick = (e)=>{ game.timeScale = game.timeScale === 1 ? 1.8 : 1; e.target.textContent = game.timeScale === 1 ? 'x1' : 'x2'; };
 document.getElementById('saveBtn').onclick = ()=>{ localStorage.setItem('td_save', JSON.stringify(gameSave())); alert('Saved'); };
@@ -718,6 +897,7 @@ function loadSave(obj){
   game.analytics = obj.analytics || game.analytics;
   updateUI(); refreshSelected(); renderMapsList();
 }
+
 /* -------------------------
    UI helpers: wave preview & update
    ------------------------- */
@@ -761,9 +941,8 @@ function renderMapsList(){
 }
 function resetForMap(idx){
   game.currentMapIndex = idx; game.waveIndex = 0; game.inWave = false;
-  // clear enemies/projectiles/towers optionally (we keep towers to allow transport)
-  // For simplicity, don't delete towers — but repositioning or clearing could be implemented
   game.enemies.length = 0; game.projectiles.length = 0; if (game.runningSpawner){ clearInterval(game.runningSpawner); game.runningSpawner=null; }
+  cancelAutoWaveTimer();
   updateUI(); refreshSelected();
 }
 renderMapsList();
@@ -781,16 +960,13 @@ window.spawnWave = spawnWave;
 window.createTower = createTower;
 
 /* -------------------------
-   Start initial UI render (First three maps)
+   Start initial UI render (All maps)
    ------------------------- */
+
+
 updateUI();
 refreshSelected();
 updateWavePreview();
-
-/* ------------------------ 
-    Will change formatting later , this is for test
- Created by CrypticTM 2024-05-15 , rewritten and reconfigured 2025-08-05
-   ------------------------ * / 
 </script>
 </body>
 </html>
