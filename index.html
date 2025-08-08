@@ -89,7 +89,19 @@
       <div style="display:flex;gap:8px;"><button class="small" id="startWave">Start Next Wave</button><button class="small" id="pauseBtn">Pause</button><button class="small" id="speedBtn">x1</button></div>
       <div style="display:flex;gap:8px;margin-top:8px;"><button class="small" id="saveBtn">Save</button><button class="small" id="loadBtn">Load</button><button class="small" id="resetBtn">Reset</button></div>
     </div>
-
+<div class="muted">Auto Mode</div>
+<div class="slot">
+  <div class="smallRow">
+    <label for="autoModeToggle" style="display:flex;align-items:center;gap:6px;">
+      <input type="checkbox" id="autoModeToggle" style="vertical-align:middle;">
+      Enable Auto Mode
+    </label>
+    <div>
+      Delay: <input type="number" min="3" max="60" value="10" id="autoModeDelay" style="width:48px;">s
+    </div>
+  </div>
+  <div id="autoModeStatus" class="mutedSmall"></div>
+</div>
     <div class="muted">Wave Preview</div>
     <div id="wavePreview" class="slot mutedSmall">Ready</div>
 
@@ -706,19 +718,6 @@ function loadSave(obj){
   game.analytics = obj.analytics || game.analytics;
   updateUI(); refreshSelected(); renderMapsList();
 }
-<div class="muted">Auto Mode</div>
-<div class="slot">
-  <div class="smallRow">
-    <label for="autoModeToggle" style="display:flex;align-items:center;gap:6px;">
-      <input type="checkbox" id="autoModeToggle" style="vertical-align:middle;">
-      Enable Auto Mode
-    </label>
-    <div>
-      Delay: <input type="number" min="3" max="60" value="10" id="autoModeDelay" style="width:48px;">s
-    </div>
-  </div>
-  <div id="autoModeStatus" class="mutedSmall"></div>
-</div>
 /* -------------------------
    UI helpers: wave preview & update
    ------------------------- */
