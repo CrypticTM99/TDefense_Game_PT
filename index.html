@@ -10,16 +10,17 @@
     --ui-bg: rgba(255,255,255,0.03);
   }
   html,body{height:100%;margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Arial;background:linear-gradient(#061217,#071821);color:var(--muted);display:flex;align-items:center;justify-content:center;}
-  #wrap{ width:1200px; max-width:calc(100vw - 28px); display:grid; grid-template-columns: 760px 420px; gap:12px; }
-  canvas{ width:100%; height:700px; border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,.6); background: linear-gradient(#8ab6e0,#2a9d8f); display:block; }
-  .panel{ background:var(--panel); padding:12px; border-radius:10px; min-height:700px; box-shadow: inset 0 1px rgba(255,255,255,0.02); overflow:auto;}
+  #wrap{ width:min(1120px, calc(100vw - 28px)); display:grid; grid-template-columns: 280px 1fr; gap:12px; }
+  .maincol{ display:grid; grid-template-rows:auto 1fr; gap:12px; }
+  canvas{ width:100%; height:520px; border-radius:10px; box-shadow:0 12px 40px rgba(0,0,0,.6); background: linear-gradient(#8ab6e0,#2a9d8f); display:block; }
+  .panel{ background:var(--panel); padding:12px; border-radius:10px; box-shadow: inset 0 1px rgba(255,255,255,0.02); overflow:auto;}
   .title{ color:var(--accent); font-weight:800; margin-bottom:8px; font-size:18px; }
   .hud{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:10px; }
   .hud .item{ background:var(--ui-bg); padding:8px 10px; border-radius:8px; font-weight:700; }
   .muted{ color:#9fb0b8; font-size:13px; }
-  .towerBtn{ display:flex; gap:8px; align-items:center; padding:8px; border-radius:8px; cursor:pointer; background:var(--ui-bg); margin-bottom:8px; }
+  .towerBtn{ display:flex; gap:8px; align-items:center; padding:6px; border-radius:8px; cursor:pointer; background:var(--ui-bg); margin-bottom:6px; }
   .towerBtn:hover{ background:rgba(255,255,255,0.04); }
-  .small{ font-size:13px; padding:6px 8px; border-radius:6px; background:var(--accent); color:#071014; cursor:pointer; border:none; }
+  .small{ font-size:12px; padding:6px 8px; border-radius:6px; background:var(--accent); color:#071014; cursor:pointer; border:none; }
   .slot{ padding:10px; background:rgba(255,255,255,0.02); border-radius:8px; margin-bottom:8px; }
   .smallRow{ display:flex; justify-content:space-between; align-items:center; gap:6px; margin-top:6px; }
   input[type=range]{ width:100%; }
@@ -30,86 +31,99 @@
   .mapBtn.active{ background:rgba(242,201,76,0.16); border:1px solid rgba(242,201,76,0.18); }
   @media (max-width:1220px){
     #wrap{ grid-template-columns: 1fr; }
-    .panel{ min-height:360px; }
+    .maincol{ grid-template-rows:auto auto; }
     canvas{ height:420px; }
+  }
+  @media (max-width: 768px){
+    canvas{ height:360px; }
+    .panel{ min-height:auto; }
+    #wrap{ gap:8px; }
   }
 </style>
 </head>
 <body>
 <div id="wrap">
-  <div class="panel">
-    <canvas id="game" width="1480" height="1160"></canvas>
-  </div>
-
-  <div class="panel">
-    <div class="title">Bramblewick || Defend the Town</div>
-
-    <div class="hud">
-      <div class="item">Gold: <span id="gold">200</span></div>
-      <div class="item">Wave: <span id="wave">0</span></div>
-      <div class="item">Villagers: <span id="villagers">5</span></div>
-      <div class="item">Iron: <span id="iron">0</span></div>
-      <div class="item">Potions: <span id="potions">0</span></div>
-    </div>
-
-    <div class="muted">Maps</div>
-    <div class="slot">
-      <div class="mapsList" id="mapsList"></div>
-      <div class="mutedSmall" id="mapDesc">Select a map</div>
-    </div>
-
-    <div class="muted">Build Towers</div>
+  <div class="panel" id="leftSidebar">
+    <div class="title">Build Towers</div>
     <div id="buildList" class="slot"></div>
-
     <div class="muted">Selected</div>
     <div id="selectedPanel" class="slot">No tower selected</div>
+  </div>
 
-    <div class="muted">Jobs</div>
-    <div class="slot">
-      <div class="smallRow"><div>Miners</div><div><button class="small" id="assignMiner">+</button><button class="small" id="unassignMiner">−</button><span id="minersAssigned" style="margin-left:8px"></span></div></div>
-      <div class="smallRow"><div>Repairers</div><div><button class="small" id="assignRepair">+</button><button class="small" id="unassignRepair">−</button><span id="repairAssigned" style="margin-left:8px"></span></div></div>
-      <div class="smallRow"><div>Researchers</div><div><button class="small" id="assignResearch">+</button><button class="small" id="unassignResearch">−</button><span id="researchAssigned" style="margin-left:8px"></span></div></div>
-      <div class="smallRow"><div>Crafters</div><div><button class="small" id="assignCraft">+</button><button class="small" id="unassignCraft">−</button><span id="craftAssigned" style="margin-left:8px"></span></div></div>
+  <div class="maincol">
+    <div class="panel">
+      <canvas id="game" width="1480" height="1160"></canvas>
     </div>
 
-    <div class="muted">Crafting</div>
-    <div class="slot">
-      <div class="smallRow">
-        <div><strong>Damage Potion</strong><div class="mutedSmall">Cost: 5 Iron — Buff towers +25% for 20s</div></div>
-        <div><button class="small" id="craftPotion">Craft</button></div>
+    <div class="panel">
+      <div class="title">Bramblewick || Defend the Town</div>
+
+      <div class="hud">
+        <div class="item">Gold: <span id="gold">200</span></div>
+        <div class="item">Wave: <span id="wave">0</span></div>
+        <div class="item">Villagers: <span id="villagers">5</span></div>
+        <div class="item">Iron: <span id="iron">0</span></div>
+        <div class="item">Potions: <span id="potions">0</span></div>
       </div>
-      <div class="smallRow" style="margin-top:8px">
-        <div><strong>Ballista Bolt</strong><div class="mutedSmall">Cost: 8 Iron — One shot +20 siege damage</div></div>
-        <div><button class="small" id="craftBolt">Craft</button></div>
+
+      <div class="muted">Maps</div>
+      <div class="slot">
+        <div class="mapsList" id="mapsList"></div>
+        <div class="mutedSmall" id="mapDesc">Select a map</div>
       </div>
-    </div>
 
-    <div class="muted">Controls</div>
-    <div class="slot">
-      <div style="display:flex;gap:8px;"><button class="small" id="startWave">Start Next Wave</button><button class="small" id="pauseBtn">Pause</button><button class="small" id="speedBtn">x1</button></div>
-      <div style="display:flex;gap:8px;margin-top:8px;"><button class="small" id="saveBtn">Save</button><button class="small" id="loadBtn">Load</button><button class="small" id="resetBtn">Reset</button></div>
-    </div>
+      <div class="muted">Jobs</div>
+      <div class="slot">
+        <div class="smallRow"><div>Miners</div><div><button class="small" id="assignMiner">+</button><button class="small" id="unassignMiner">−</button><span id="minersAssigned" style="margin-left:8px"></span></div></div>
+        <div class="smallRow"><div>Repairers</div><div><button class="small" id="assignRepair">+</button><button class="small" id="unassignRepair">−</button><span id="repairAssigned" style="margin-left:8px"></span></div></div>
+        <div class="smallRow"><div>Researchers</div><div><button class="small" id="assignResearch">+</button><button class="small" id="unassignResearch">−</button><span id="researchAssigned" style="margin-left:8px"></span></div></div>
+        <div class="smallRow"><div>Crafters</div><div><button class="small" id="assignCraft">+</button><button class="small" id="unassignCraft">−</button><span id="craftAssigned" style="margin-left:8px"></span></div></div>
+      </div>
 
-    <!-- NEW: Auto Mode UI -->
-    <div class="muted">Auto Mode</div>
-    <div class="slot">
-      <div class="smallRow">
-        <label for="autoModeToggle" style="display:flex;align-items:center;gap:6px;">
-          <input type="checkbox" id="autoModeToggle" style="vertical-align:middle;">
-          Enable Auto Mode
-        </label>
-        <div>
-          Delay: <input type="number" min="3" max="60" value="10" id="autoModeDelay" style="width:48px;">s
+      <div class="muted">Crafting</div>
+      <div class="slot">
+        <div class="smallRow">
+          <div><strong>Damage Potion</strong><div class="mutedSmall">Cost: 5 Iron — Buff towers +25% for 20s</div></div>
+          <div><button class="small" id="craftPotion">Craft</button></div>
+        </div>
+        <div class="smallRow" style="margin-top:8px">
+          <div><strong>Ballista Bolt</strong><div class="mutedSmall">Cost: 8 Iron — One shot +20 siege damage</div></div>
+          <div><button class="small" id="craftBolt">Craft</button></div>
         </div>
       </div>
-      <div id="autoModeStatus" class="mutedSmall"></div>
+
+      <div class="muted">Controls</div>
+      <div class="slot">
+        <div style="display:flex;gap:8px;"><button class="small" id="startWave">Start Next Wave</button><button class="small" id="pauseBtn">Pause</button><button class="small" id="speedBtn">x1</button></div>
+        <div style="display:flex;gap:8px;margin-top:8px;"><button class="small" id="saveBtn">Save</button><button class="small" id="loadBtn">Load</button><button class="small" id="resetBtn">Reset</button></div>
+        <div style="display:flex;gap:8px;margin-top:8px;align-items:center;flex-wrap:wrap;">
+          <input type="file" id="archerSpriteInput" accept="image/*" style="display:none">
+          <button class="small" id="setArcherSpriteBtn">Set Archer Sprite</button>
+          <span class="mutedSmall">Optional: choose image for Archer towers</span>
+        </div>
+      </div>
+
+      <!-- NEW: Auto Mode UI -->
+      <div class="muted">Auto Mode</div>
+      <div class="slot">
+        <div class="smallRow">
+          <label for="autoModeToggle" style="display:flex;align-items:center;gap:6px;">
+            <input type="checkbox" id="autoModeToggle" style="vertical-align:middle;">
+            Enable Auto Mode
+          </label>
+          <div>
+            Delay: <input type="number" min="3" max="60" value="10" id="autoModeDelay" style="width:48px;">s
+          </div>
+        </div>
+        <div id="autoModeStatus" class="mutedSmall"></div>
+      </div>
+      <!-- END: Auto Mode UI -->
+
+      <div class="muted">Wave Preview</div>
+      <div id="wavePreview" class="slot mutedSmall">Ready</div>
+
+      <div class="footer">Tip: place support towers near clusters, use Siege on armored units, try map-specific strategies. Save often!</div>
     </div>
-    <!-- END: Auto Mode UI -->
-
-    <div class="muted">Wave Preview</div>
-    <div id="wavePreview" class="slot mutedSmall">Ready</div>
-
-    <div class="footer">Tip: place support towers near clusters, use Siege on armored units, try map-specific strategies. Save often!</div>
   </div>
 </div>
 
@@ -126,7 +140,24 @@
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
 const W = canvas.width, H = canvas.height;
-const GRID = { cols: 12, rows: 10, tile: 110 };
+const GRID = { cols: 12, rows: 10, tile: 72 };
+let archerSprite = null;
+let mageSprite = null;
+// Attempt to preload local sprite if present next to HTML
+(function preloadArcher(){
+  const img = new Image();
+  img.onload = ()=>{ archerSprite = img; };
+  img.onerror = ()=>{};
+  img.src = 'TD4.png';
+})();
+
+// Preload mage sprite if present
+(function preloadMage(){
+  const img = new Image();
+  img.onload = ()=>{ mageSprite = img; };
+  img.onerror = ()=>{};
+  img.src = 'TD3.png';
+})();
 
 /* -------------------------
    Game state
@@ -184,7 +215,17 @@ const MAPS = [
     spawnPoints:[ {x:-80,y:GRID.tile*4+30} ],
     goals:[ {x:GRID.tile*GRID.cols + 80, y: GRID.tile*5 + 20} ],
     waypoints:[
-      [{x: -80, y: GRID.tile*4 + 30},{x: 220, y: GRID.tile*4 + 30},{x: 420, y: GRID.tile*6 + 20},{x: 780, y: GRID.tile*6 + 20},{x: 1100, y: GRID.tile*4 + 20},{x: GRID.tile*GRID.cols + 60, y: GRID.tile*5 + 20}]
+      [
+        {x:-80, y:GRID.tile*4+30},
+        {x:180, y:GRID.tile*4+30},
+        {x:380, y:GRID.tile*6+20},
+        {x:680, y:GRID.tile*6+20},
+        {x:920, y:GRID.tile*4+20},
+        {x:680, y:GRID.tile*3-10},
+        {x:380, y:GRID.tile*3-10},
+        {x:180, y:GRID.tile*4+30},
+        {x:GRID.tile*GRID.cols+60, y:GRID.tile*5+20} // exit toward goal
+      ]
     ],
     waves:[
       [{t:ENEMIES.goblin,c:8}],
@@ -276,11 +317,14 @@ const MAPS = [
     id:'lava', name:'Molten River', desc:'A scorching river splits the map. Fast and armored units appear.',
     bgTiles: ['#a14d2e','#d2691e'],
     roadColor:'rgba(255,80,0,0.4)',
+    // Spawns on left, paths route around a central lava river band
     spawnPoints:[ {x:-80, y:GRID.tile*2+30}, {x:-80, y:GRID.tile*7+30} ],
-    goals:[ {x:GRID.tile*GRID.cols+80, y:GRID.tile*4+80} ],
+    goals:[ {x:GRID.tile*GRID.cols-20, y:GRID.tile*4+80} ],
     waypoints:[
-      [{x:-80, y:GRID.tile*2+30}, {x:340, y:GRID.tile*2+30}, {x:660, y:GRID.tile*4+20}, {x:GRID.tile*GRID.cols+80, y:GRID.tile*4+80}],
-      [{x:-80, y:GRID.tile*7+30}, {x:340, y:GRID.tile*7+30}, {x:660, y:GRID.tile*5+60}, {x:GRID.tile*GRID.cols+80, y:GRID.tile*4+80}]
+      // Upper path skirts above the river then crosses near the end
+      [{x:-80, y:GRID.tile*2+30}, {x:GRID.tile*3, y:GRID.tile*2+30}, {x:GRID.tile*5-30, y:GRID.tile*2+20}, {x:GRID.tile*7+40, y:GRID.tile*3+40}, {x:GRID.tile*9+20, y:GRID.tile*4+60}, {x:GRID.tile*11-10, y:GRID.tile*4+80}],
+      // Lower path skirts below the river then merges
+      [{x:-80, y:GRID.tile*7+30}, {x:GRID.tile*3, y:GRID.tile*7+30}, {x:GRID.tile*5-30, y:GRID.tile*6+60}, {x:GRID.tile*7+40, y:GRID.tile*5+40}, {x:GRID.tile*9+20, y:GRID.tile*4+80}, {x:GRID.tile*11-10, y:GRID.tile*4+80}]
     ],
     waves:[
       [{t:ENEMIES.goblin,c:12}],
@@ -454,11 +498,18 @@ function createTower(kind, gx, gy){
 function isOnRoad(gx,gy){
   const map = MAPS[game.currentMapIndex]; if (!map) return false;
   const px = gx*GRID.tile + GRID.tile/2, py = gy*GRID.tile + GRID.tile/2;
+  // Block lava river tiles on molten map
+  if (map.id === 'lava'){
+    const rx1 = GRID.tile*5 - GRID.tile*0.5;
+    const rw = GRID.tile*2;
+    if (px >= rx1 && px <= rx1+rw) return true; // hot river band
+  }
   for (let path of map.waypoints){
     for (let i=0;i<path.length-1;i++){
       const a = path[i], b = path[i+1];
       const dist = pointToSegmentDistance(px,py,a.x,a.y,b.x,b.y);
-      if (dist < 44) return true;
+      const blockThreshold = Math.max(12, Math.floor(GRID.tile * 0.38));
+      if (dist < blockThreshold) return true;
     }
   }
   return false;
@@ -568,8 +619,9 @@ function spawnWave(){
     }
     const grp = pattern[groupIndex];
     if (countIndex < grp.c){
-      const spawn = map.spawnPoints[Math.floor(Math.random()*map.spawnPoints.length)];
-      const pathIndex = map.waypoints.length>1 ? Math.floor(Math.random()*map.waypoints.length) : 0;
+      const spawnIndex = map.spawnPoints.length>1 ? Math.floor(Math.random()*map.spawnPoints.length) : 0;
+      const spawn = map.spawnPoints[spawnIndex];
+      const pathIndex = Math.min(spawnIndex, map.waypoints.length-1);
       spawnEnemy(grp.t, spawn, pathIndex);
       countIndex++;
     } else { groupIndex++; countIndex=0; }
@@ -654,7 +706,7 @@ function processProjectiles(dt){
         tgt.hp -= p.damage; if (tgt.hp <= 0) killEnemy(tgt);
       }
       despawnProj(p);
-    } else { p.x += dx/d * step; p.y += dy/d * step; }
+    } else { p.x = Math.fround(p.x + dx/d * step); p.y = Math.fround(p.y + dy/d * step); }
   }
 }
 
@@ -688,7 +740,7 @@ function loop(now){
         despawnEnemy(e); updateUI(); continue;
       }
       const dx = wp.x - e.x, dy = wp.y - e.y; const distTo = Math.hypot(dx,dy);
-      if (distTo < 8) e.wayIndex++; else { const sp = e.speed * dt; e.x += dx/distTo * sp; e.y += dy/distTo * sp; }
+      if (distTo < 8) e.wayIndex++; else { const sp = e.speed * dt; const stepX = (dx/distTo) * sp; const stepY = (dy/distTo) * sp; e.x = Math.fround(e.x + stepX); e.y = Math.fround(e.y + stepY); }
       if (e.flags && e.flags.regen) e.hp = Math.min(e.maxHP, e.hp + 6*dt);
     }
 
@@ -721,10 +773,12 @@ requestAnimationFrame(loop);
    Rendering
    ------------------------- */
 function render(){
-  ctx.clearRect(0,0,W,H);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   const map = MAPS[game.currentMapIndex];
 
-  // ground tiles
+  // ground tiles (confined to visible grid area)
+  const playWidth = GRID.cols * GRID.tile;
+  const playHeight = GRID.rows * GRID.tile;
   for (let r=0;r<GRID.rows;r++){
     for (let c=0;c<GRID.cols;c++){
       const x=c*GRID.tile,y=r*GRID.tile;
@@ -733,34 +787,66 @@ function render(){
     }
   }
 
-  // roads (draw each path)
+  // roads (draw each path) within grid bounds only
   if (map){
     ctx.fillStyle = map.roadColor;
+    // Scorching river for molten map
+    if (map.id === 'lava'){
+      const rx1 = GRID.tile*5 - GRID.tile*0.5;
+      const rw = GRID.tile*2;
+      const ry = 0, rh = GRID.rows*GRID.tile;
+      const g = ctx.createLinearGradient(rx1,0,rx1+rw,0);
+      g.addColorStop(0,'rgba(255,120,40,0.7)');
+      g.addColorStop(0.5,'rgba(255,60,0,0.65)');
+      g.addColorStop(1,'rgba(255,120,40,0.7)');
+      ctx.fillStyle = g; ctx.fillRect(rx1, ry, rw, rh);
+      // heat edges
+      ctx.fillStyle = 'rgba(255,180,40,0.25)';
+      ctx.fillRect(rx1-6, ry, 6, rh);
+      ctx.fillRect(rx1+rw, ry, 6, rh);
+    }
     for (let p=0;p<map.waypoints.length;p++){
       const path = map.waypoints[p];
       // simple thick stroke along path
       ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
       for (let i=1;i<path.length;i++) ctx.lineTo(path[i].x, path[i].y);
-      ctx.lineWidth = GRID.tile - 44; ctx.strokeStyle = map.roadColor; ctx.lineCap='round'; ctx.stroke();
+      const roadWidth = Math.max(14, Math.floor(GRID.tile * 0.6));
+      ctx.lineWidth = roadWidth; ctx.strokeStyle = map.roadColor; ctx.lineCap='round'; ctx.stroke();
     }
   }
 
-  // path guide (thin)
-  ctx.strokeStyle = 'rgba(255,255,255,0.06)'; ctx.lineWidth = 3;
+  // path guide (thin, higher contrast) + waypoint markers
+  ctx.strokeStyle = 'rgba(255,255,255,0.18)'; ctx.lineWidth = 3;
   if (map){
     for (let p=0;p<map.waypoints.length;p++){
       const path = map.waypoints[p];
       ctx.beginPath(); ctx.moveTo(path[0].x, path[0].y);
       for (let i=1;i<path.length;i++) ctx.lineTo(path[i].x, path[i].y);
       ctx.stroke();
+      // draw waypoint dots
+      for (let i=0;i<path.length;i++){
+        const wp = path[i];
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.beginPath(); ctx.arc(wp.x, wp.y, 5, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.35)';
+        ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(wp.x, wp.y, 6.5, 0, Math.PI*2); ctx.stroke();
+      }
     }
   }
 
   // towers
   for (let t of game.towers){
     ctx.fillStyle='rgba(0,0,0,0.18)'; ctx.beginPath(); ctx.ellipse(t.px+6,t.py+12,28,12,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle = t.color; ctx.fillRect(t.px-28,t.py-36,56,46);
-    ctx.fillStyle = '#fff'; ctx.font='12px sans-serif'; ctx.fillText(t.kind.toUpperCase(), t.px-20, t.py-12);
+    if (t.kind === 'archer' && archerSprite){
+      const imgW = 56, imgH = 70;
+      ctx.drawImage(archerSprite, t.px - imgW/2, t.py - imgH + 18, imgW, imgH);
+    } else if (t.kind === 'mage' && mageSprite){
+      const imgW = 56, imgH = 70;
+      ctx.drawImage(mageSprite, t.px - imgW/2, t.py - imgH + 18, imgW, imgH);
+    } else {
+      ctx.fillStyle = t.color; ctx.fillRect(t.px-28,t.py-36,56,46);
+      ctx.fillStyle = '#fff'; ctx.font='12px sans-serif'; ctx.fillText(t.kind.toUpperCase(), t.px-20, t.py-12);
+    }
     if (game.selectedTower === t){ ctx.strokeStyle='rgba(255,255,255,0.16)'; ctx.beginPath(); ctx.arc(t.px,t.py,t.range,0,Math.PI*2); ctx.stroke(); }
     if (t.aura){ ctx.strokeStyle='rgba(42,157,143,0.08)'; ctx.beginPath(); ctx.arc(t.px,t.py,t.range,0,Math.PI*2); ctx.stroke(); }
     if (t._auraActive || t._repairBuff){ ctx.fillStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.arc(t.px,t.py,18,0,Math.PI*2); ctx.fill(); }
@@ -792,7 +878,7 @@ function render(){
 
   // day/night overlay
   const nightAlpha = clamp((game.dayTime > 0.7 ? (game.dayTime - 0.7)/0.3 : (game.dayTime < 0.18 ? (0.18 - game.dayTime)/0.18 : 0)), 0, 0.6);
-  ctx.fillStyle = `rgba(5,10,25,${0.22 * nightAlpha})`; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = `rgba(5,10,25,${0.22 * nightAlpha})`; ctx.fillRect(0,0,canvas.width,canvas.height);
   // sun/moon
   const cx=70, cy=40;
   ctx.fillStyle = game.isNight ? '#e8f0ff' : '#fff2c4';
@@ -807,17 +893,55 @@ const buildList = document.getElementById('buildList');
 for (const k in TOWER_CATALOG){
   const def = TOWER_CATALOG[k];
   const div = document.createElement('div'); div.className='towerBtn';
-  div.innerHTML = `<div style="width:46px;height:46px;border-radius:8px;background:${def.color};display:flex;align-items:center;justify-content:center;font-weight:800">${def.name[0]}</div>
+  div.innerHTML = `<div style="width:38px;height:38px;border-radius:8px;background:${def.color};display:flex;align-items:center;justify-content:center;font-weight:800">${def.name[0]}</div>
     <div><div style="font-weight:800">${def.name}</div><div class="mutedSmall">${def.cost} gold • ${def.canTargetAir? 'Anti-air':'Ground only'}</div></div>
-    <div style="margin-left:auto" class="mutedSmall">Cost: ${def.cost}</div>`;
+    <div style="margin-left:auto" class="mutedSmall">${def.cost}</div>`;
   div.onclick = ()=>{ placing = def.id; document.body.style.cursor='crosshair'; };
   buildList.appendChild(div);
 }
 
-canvas.addEventListener('click', (ev)=>{
+let _tileLocked = false;
+function resizeCanvasToFit() {
+  const dpr = window.devicePixelRatio || 1;
+  const container = canvas.parentElement;
+  const rectParent = container.getBoundingClientRect();
+  const tileCandidate = Math.floor(Math.min(rectParent.width / GRID.cols, rectParent.height / GRID.rows));
+  if (!_tileLocked) {
+    GRID.tile = Math.max(48, Math.min(tileCandidate, 84));
+    _tileLocked = true;
+  }
+  const cssW = GRID.cols * GRID.tile;
+  const cssH = GRID.rows * GRID.tile;
+  canvas.style.width = cssW + 'px';
+  canvas.style.height = cssH + 'px';
+  canvas.width = Math.round(cssW * dpr);
+  canvas.height = Math.round(cssH * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+}
+window.addEventListener('resize', resizeCanvasToFit, { passive:true });
+resizeCanvasToFit();
+
+
+// Archer sprite loader
+document.getElementById('setArcherSpriteBtn')?.addEventListener('click', ()=>{
+  document.getElementById('archerSpriteInput').click();
+});
+document.getElementById('archerSpriteInput')?.addEventListener('change', (e)=>{
+  const file = e.target.files && e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = ()=>{ archerSprite = img; URL.revokeObjectURL(url); };
+  img.src = url;
+});
+
+canvas.addEventListener('pointerdown', (ev) => {
   const rect = canvas.getBoundingClientRect();
-  const cx = (ev.clientX - rect.left) * (canvas.width / rect.width);
-  const cy = (ev.clientY - rect.top) * (canvas.height / rect.height);
+  const scaleX = canvas.width / (window.devicePixelRatio || 1) / rect.width;
+  const scaleY = canvas.height / (window.devicePixelRatio || 1) / rect.height;
+  const cx = (ev.clientX - rect.left) * scaleX;
+  const cy = (ev.clientY - rect.top) * scaleY;
   if (placing){
     const gx = Math.floor(cx / GRID.tile), gy = Math.floor(cy / GRID.tile);
     if (createTower(placing, gx, gy)) updateUI();
@@ -826,7 +950,8 @@ canvas.addEventListener('click', (ev)=>{
   let found = null;
   for (let t of game.towers){ if (Math.hypot(cx - t.px, cy - t.py) < 36){ found = t; break; } }
   game.selectedTower = found; refreshSelected();
-});
+}, { passive:true });
+canvas.style.touchAction = 'none';
 
 /* -------------------------
    Selected panel
@@ -944,7 +1069,7 @@ function renderMapsList(){
 }
 function resetForMap(idx){
   game.currentMapIndex = idx; game.waveIndex = 0; game.inWave = false;
-  game.enemies.length = 0; game.projectiles.length = 0; if (game.runningSpawner){ clearInterval(game.runningSpawner); game.runningSpawner=null; }
+  game.enemies.length = 0; game.projectiles.length = 0; game.towers.length = 0; if (game.runningSpawner){ clearInterval(game.runningSpawner); game.runningSpawner=null; }
   cancelAutoWaveTimer();
   updateUI(); refreshSelected();
 }
